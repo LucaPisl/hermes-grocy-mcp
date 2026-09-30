@@ -30,10 +30,24 @@ pub async fn probe(client: &ApiClient) -> Result<DoctorReport> {
         let mut r = ApiRequest::get("/objects/{entity}");
         r.params.insert("entity".into(), entity.into());
         r.query.insert("limit".into(), "100".into());
-        defaults.insert(entity.into(), client.request(r).await?.json()?);
+        let rows = client.request(r).await?.json()?;
+        if !rows.is_array() {
+            return Err(crate::error::AppError::new(
+                "INVALID_RESPONSE",
+                "Expected household metadata lists from the API.",
+            ));
+        }
+        defaults.insert(entity.into(), rows);
     }
     Ok(DoctorReport {
-        version: info["grocy_version"]["Version"].as_str().map(str::to_owned),
+        version: info["grocy_version"]["Version"]
+            .as_str()
+            .filter(|s| {
+                s.len() <= 64
+                    && s.chars()
+                        .all(|c| c.is_ascii_alphanumeric() || ".-+".contains(c))
+            })
+            .map(str::to_owned),
         server_time: time,
         household_access: true,
         household_defaults: Value::Object(defaults),
@@ -45,5 +59,15 @@ pub async fn doctor(s: ProfileSelection, store: Arc<dyn CredentialStore>) -> Res
     probe(&client).await
 }
 pub fn private_defaults(report: &DoctorReport) -> Value {
-    json!({"grocy_version":report.version,"server_time":report.server_time,"household_defaults":report.household_defaults})
+    let mut samples = serde_json::Map::new();
+    for entity in ["locations", "quantity_units", "shopping_lists"] {
+        let rows = report.household_defaults[entity].as_array().map(|rows| rows.iter().take(100).map(|r|json!({"id":r["id"].as_u64().or_else(||r["id"].as_str().and_then(|s|s.parse().ok())),"name":r["name"].as_str().unwrap_or("").chars().take(128).collect::<String>()})).collect::<Vec<_>>()).unwrap_or_default();
+        samples.insert(entity.into(), json!(rows));
+    }
+    let time = if report.server_time.to_string().len() <= 4096 {
+        report.server_time.clone()
+    } else {
+        Value::Null
+    };
+    json!({"grocy_version":report.version,"server_time":time,"household_defaults":samples})
 }

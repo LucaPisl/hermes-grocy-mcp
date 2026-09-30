@@ -42,7 +42,7 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
             properties = json!({"group":{"type":"string","enum":["equipmentmanuals","recipepictures","productpictures","userfiles"]},"filename":{"type":"string","maxLength":255}});
             required.extend(["group", "filename"]);
             if name == "file_upload" {
-                properties["content_base64"] = json!({"type":"string","maxLength":((BINARY_LIMIT+2)/3)*4,"description":"Standard base64 of actual file bytes, at most 8 MiB decoded. No local path or external URL."});
+                properties["content_base64"] = json!({"type":"string","maxLength":BINARY_LIMIT.div_ceil(3)*4,"description":"Standard base64 of actual file bytes, at most 8 MiB decoded. No local path or external URL."});
                 required.push("content_base64")
             }
         }
@@ -96,7 +96,7 @@ pub async fn run(client: &ApiClient, call: &crate::catalog::ValidatedCall) -> Re
         let encoded = call.args["content_base64"]
             .as_str()
             .ok_or_else(AppError::input)?;
-        if encoded.len() > ((BINARY_LIMIT + 2) / 3) * 4 {
+        if encoded.len() > BINARY_LIMIT.div_ceil(3) * 4 {
             return Err(AppError::input());
         }
         let bytes = STANDARD.decode(encoded).map_err(|_| AppError::input())?;

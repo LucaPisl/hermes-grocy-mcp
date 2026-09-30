@@ -108,13 +108,19 @@ struct ProfileRef<'a> {
 struct ProfileWire {
     version: u8,
     api_base: String,
-    api_key: String,
+    #[serde(deserialize_with = "deserialize_key")]
+    api_key: SecretString,
     access: AccessMode,
     timezone: Option<String>,
     defaults: Value,
     ca_path: Option<std::path::PathBuf>,
     transport: TransportPolicy,
     unsafe_storage: bool,
+}
+fn deserialize_key<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> std::result::Result<SecretString, D::Error> {
+    String::deserialize(d).map(SecretString::from)
 }
 fn encode(p: &PrivateProfile) -> Result<Zeroizing<Vec<u8>>> {
     serde_json::to_vec(&ProfileRef {
@@ -138,13 +144,13 @@ fn decode(bytes: &[u8]) -> Result<PrivateProfile> {
             "The wallet profile is invalid. Run setup again.",
         ));
     }
-    let mut w: ProfileWire = serde_json::from_slice(bytes).map_err(|_| {
+    let w: ProfileWire = serde_json::from_slice(bytes).map_err(|_| {
         AppError::new(
             "INVALID_PROFILE",
             "The wallet profile is invalid. Run setup again.",
         )
     })?;
-    let key = SecretString::from(std::mem::take(&mut w.api_key));
+    let key = w.api_key;
     if w.version != 1 {
         return Err(AppError::new(
             "INVALID_PROFILE",

@@ -87,7 +87,7 @@ impl PreferenceStore {
             .read(true)
             .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
             .open(self.directory.join(format!("{name}.json")))
-            .map_err(|_| AppError::new("PROFILE_NOT_FOUND", "Run setup to enroll this profile."))?;
+            .map_err(|e| if e.kind()==std::io::ErrorKind::NotFound { AppError::new("PROFILE_NOT_FOUND", "Run setup to enroll this profile.") } else {AppError::new("UNSAFE_PREFERENCES", "Cannot safely read preferences. Review this application's preferences file before setup.")})?;
         let m = f.metadata().map_err(|_| AppError::input())?;
         if !m.is_file()
             || m.uid() != unsafe { libc::geteuid() }

@@ -4,6 +4,7 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::{path::Path, process::Stdio, time::Duration};
+use tokio::io::AsyncReadExt;
 fn entry(exe: &Path, s: &ProfileSelection) -> Result<Value> {
     crate::credentials::preferences::validate_profile(&s.profile)?;
     if !exe.is_absolute() {
@@ -17,7 +18,7 @@ pub fn render_config(exe: &Path, s: &ProfileSelection) -> Result<String> {
     serde_json::to_string_pretty(&json!({"grocy":entry(exe,s)?})).map_err(|_| AppError::input())
 }
 async fn run(hermes: &Path, args: &[String]) -> Result<std::process::Output> {
-    let child = tokio::process::Command::new(hermes)
+    let mut child = tokio::process::Command::new(hermes)
         .args(args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -30,7 +31,18 @@ async fn run(hermes: &Path, args: &[String]) -> Result<std::process::Output> {
                 "Hermes is unavailable. Install it or use print-config.",
             )
         })?;
-    let output = tokio::time::timeout(Duration::from_secs(45), child.wait_with_output())
+    let stdout = child.stdout.take().ok_or_else(AppError::input)?;
+    let stderr = child.stderr.take().ok_or_else(AppError::input)?;
+    let wait = async {
+        let (status, stdout, stderr) =
+            tokio::try_join!(child.wait(), bounded_output(stdout), bounded_output(stderr))?;
+        Ok::<_, std::io::Error>(std::process::Output {
+            status,
+            stdout,
+            stderr,
+        })
+    };
+    let output = tokio::time::timeout(Duration::from_secs(45), wait)
         .await
         .map_err(|_| {
             AppError::new(
@@ -39,13 +51,18 @@ async fn run(hermes: &Path, args: &[String]) -> Result<std::process::Output> {
             )
         })?
         .map_err(|_| AppError::new("HERMES_UNAVAILABLE", "Hermes did not finish this command."))?;
-    if output.stdout.len() > 1024 * 1024 {
+    if output.stdout.len() > 1024 * 1024 || output.stderr.len() > 1024 * 1024 {
         return Err(AppError::new(
             "HERMES_CONFIG_UNSUPPORTED",
-            "Hermes configuration output is too large. Use print-config.",
+            "Hermes output is too large. Use print-config.",
         ));
     }
     Ok(output)
+}
+async fn bounded_output<R: tokio::io::AsyncRead + Unpin>(reader: R) -> std::io::Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    reader.take(1024 * 1024 + 1).read_to_end(&mut bytes).await?;
+    Ok(bytes)
 }
 async fn config_path(hermes: &Path) -> Result<std::path::PathBuf> {
     let o = run(hermes, &["config".into(), "path".into()]).await?;
@@ -59,13 +76,13 @@ async fn config_path(hermes: &Path) -> Result<std::path::PathBuf> {
             "Hermes cannot report its configuration path. Update it or use print-config.",
         ));
     }
-    if let Ok(m) = std::fs::symlink_metadata(&p) {
-        if !m.is_file() {
-            return Err(AppError::new(
-                "HERMES_CONFIG_UNSUPPORTED",
-                "Hermes configuration must be a regular file. Review it manually.",
-            ));
-        }
+    if let Ok(m) = std::fs::symlink_metadata(&p)
+        && !m.is_file()
+    {
+        return Err(AppError::new(
+            "HERMES_CONFIG_UNSUPPORTED",
+            "Hermes configuration must be a regular file. Review it manually.",
+        ));
     }
     Ok(p)
 }
