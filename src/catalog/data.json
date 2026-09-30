@@ -1,0 +1,2489 @@
+{
+  "version": "4.7.1",
+  "entities": {
+    "products": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "product_group_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "active": {
+          "type": "integer"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "shopping_location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "qu_id_purchase": {
+          "type": "integer"
+        },
+        "qu_id_stock": {
+          "type": "integer"
+        },
+        "min_stock_amount": {
+          "type": "integer"
+        },
+        "default_best_before_days": {
+          "type": "integer"
+        },
+        "default_best_before_days_after_open": {
+          "type": "integer"
+        },
+        "default_best_before_days_after_freezing": {
+          "type": "integer"
+        },
+        "default_best_before_days_after_thawing": {
+          "type": "integer"
+        },
+        "picture_file_name": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "enable_tare_weight_handling": {
+          "type": "integer"
+        },
+        "tare_weight": {
+          "type": "number"
+        },
+        "not_check_stock_fulfillment_for_recipes": {
+          "type": "integer",
+          "nullable": true
+        },
+        "parent_product_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "calories": {
+          "type": "integer",
+          "nullable": true
+        },
+        "cumulate_min_stock_amount_of_sub_products": {
+          "type": "integer",
+          "nullable": true
+        },
+        "due_type": {
+          "type": "integer"
+        },
+        "quick_consume_amount": {
+          "type": "number"
+        },
+        "hide_on_stock_overview": {
+          "type": "integer"
+        },
+        "default_stock_label_type": {
+          "type": "integer"
+        },
+        "should_not_be_frozen": {
+          "type": "integer"
+        },
+        "treat_opened_as_out_of_stock": {
+          "type": "integer"
+        },
+        "no_own_stock": {
+          "type": "integer"
+        },
+        "default_consume_location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "move_on_open": {
+          "type": "integer"
+        },
+        "qu_id_consume": {
+          "type": "integer",
+          "nullable": true
+        },
+        "auto_reprint_stock_label": {
+          "type": "integer"
+        },
+        "quick_open_amount": {
+          "type": "number"
+        },
+        "qu_id_price": {
+          "type": "integer",
+          "nullable": true
+        },
+        "disable_open": {
+          "type": "integer"
+        },
+        "default_purchase_price_type": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "location_id",
+        "qu_id_purchase",
+        "qu_id_stock"
+      ]
+    },
+    "chores": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "period_type": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "period_days": {
+          "type": "integer",
+          "nullable": true
+        },
+        "period_config": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "track_date_only": {
+          "type": "integer",
+          "nullable": true
+        },
+        "rollover": {
+          "type": "integer",
+          "nullable": true
+        },
+        "assignment_type": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "assignment_config": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "next_execution_assigned_to_user_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "consume_product_on_execution": {
+          "type": "integer"
+        },
+        "product_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "product_amount": {
+          "type": "number",
+          "nullable": true
+        },
+        "period_interval": {
+          "type": "integer"
+        },
+        "active": {
+          "type": "integer"
+        },
+        "start_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "rescheduled_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "rescheduled_next_execution_assigned_to_user_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": [
+        "name",
+        "period_type"
+      ]
+    },
+    "product_barcodes": {
+      "writable": true,
+      "fields": {
+        "product_id": {
+          "type": "integer"
+        },
+        "barcode": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "qu_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "amount": {
+          "type": "number",
+          "nullable": true
+        },
+        "shopping_location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "last_price": {
+          "type": "number",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "barcode"
+      ]
+    },
+    "batteries": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "used_in": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "charge_interval_days": {
+          "type": "integer"
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "locations": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "is_freezer": {
+          "type": "integer"
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "quantity_units": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "name_plural": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "plural_forms": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "quantity_unit_conversions": {
+      "writable": true,
+      "fields": {
+        "from_qu_id": {
+          "type": "integer"
+        },
+        "to_qu_id": {
+          "type": "integer"
+        },
+        "factor": {
+          "type": "number"
+        },
+        "product_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": [
+        "from_qu_id",
+        "to_qu_id",
+        "factor"
+      ]
+    },
+    "shopping_list": {
+      "writable": true,
+      "fields": {
+        "product_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "amount": {
+          "type": "number"
+        },
+        "shopping_list_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "done": {
+          "type": "integer",
+          "nullable": true
+        },
+        "qu_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": []
+    },
+    "shopping_lists": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "shopping_locations": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "recipes": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "picture_file_name": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "base_servings": {
+          "type": "integer",
+          "nullable": true
+        },
+        "desired_servings": {
+          "type": "integer",
+          "nullable": true
+        },
+        "not_check_shoppinglist": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "product_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "recipes_pos": {
+      "writable": true,
+      "fields": {
+        "recipe_id": {
+          "type": "integer"
+        },
+        "product_id": {
+          "type": "integer"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "qu_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "only_check_single_unit_in_stock": {
+          "type": "integer"
+        },
+        "ingredient_group": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "not_check_stock_fulfillment": {
+          "type": "integer"
+        },
+        "variable_amount": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "price_factor": {
+          "type": "number"
+        },
+        "round_up": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "recipe_id",
+        "product_id"
+      ]
+    },
+    "recipes_nestings": {
+      "writable": true,
+      "fields": {
+        "recipe_id": {
+          "type": "integer"
+        },
+        "includes_recipe_id": {
+          "type": "integer"
+        },
+        "servings": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": [
+        "recipe_id",
+        "includes_recipe_id"
+      ]
+    },
+    "tasks": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "due_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "done": {
+          "type": "integer"
+        },
+        "done_timestamp": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "category_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "assigned_to_user_id": {
+          "type": "integer",
+          "nullable": true
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "task_categories": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "product_groups": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "active": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "equipment": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "instruction_manual_file_name": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "userfields": {
+      "writable": true,
+      "fields": {
+        "entity": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "caption": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "show_as_column_in_tables": {
+          "type": "integer"
+        },
+        "config": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "sort_number": {
+          "type": "integer",
+          "nullable": true
+        },
+        "input_required": {
+          "type": "integer"
+        },
+        "default_value": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "entity",
+        "name",
+        "caption",
+        "type"
+      ]
+    },
+    "userentities": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "caption": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "description": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "show_in_sidebar_menu": {
+          "type": "integer"
+        },
+        "icon_css_class": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "name",
+        "caption"
+      ]
+    },
+    "userobjects": {
+      "writable": true,
+      "fields": {
+        "userentity_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userentity_id"
+      ]
+    },
+    "meal_plan": {
+      "writable": true,
+      "fields": {
+        "day": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "type": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "recipe_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "recipe_servings": {
+          "type": "integer",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "product_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "product_amount": {
+          "type": "number",
+          "nullable": true
+        },
+        "product_qu_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "done": {
+          "type": "integer"
+        },
+        "section_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "day"
+      ]
+    },
+    "stock_log": {
+      "writable": false,
+      "fields": {
+        "product_id": {
+          "type": "integer"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "best_before_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "purchased_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "used_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "spoiled": {
+          "type": "integer"
+        },
+        "stock_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "transaction_type": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "price": {
+          "type": "number",
+          "nullable": true
+        },
+        "undone": {
+          "type": "integer"
+        },
+        "undone_timestamp": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "opened_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "recipe_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "correlation_id": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "transaction_id": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "stock_row_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "shopping_location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "amount",
+        "stock_id",
+        "transaction_type"
+      ]
+    },
+    "stock": {
+      "writable": false,
+      "fields": {
+        "product_id": {
+          "type": "integer"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "best_before_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "purchased_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "stock_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "price": {
+          "type": "number",
+          "nullable": true
+        },
+        "open": {
+          "type": "integer"
+        },
+        "opened_date": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "shopping_location_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "note": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "amount",
+        "stock_id"
+      ]
+    },
+    "stock_current_locations": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "chores_log": {
+      "writable": false,
+      "fields": {
+        "chore_id": {
+          "type": "integer"
+        },
+        "tracked_time": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "done_by_user_id": {
+          "type": "integer",
+          "nullable": true
+        },
+        "undone": {
+          "type": "integer"
+        },
+        "undone_timestamp": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "skipped": {
+          "type": "integer"
+        },
+        "scheduled_execution_time": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "chore_id"
+      ]
+    },
+    "meal_plan_sections": {
+      "writable": true,
+      "fields": {
+        "name": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "sort_number": {
+          "type": "integer",
+          "nullable": true
+        },
+        "time_info": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "products_last_purchased": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "products_average_price": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "quantity_unit_conversions_resolved": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "recipes_pos_resolved": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "battery_charge_cycles": {
+      "writable": false,
+      "fields": {
+        "battery_id": {
+          "type": "integer"
+        },
+        "tracked_time": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        },
+        "undone": {
+          "type": "integer"
+        },
+        "undone_timestamp": {
+          "type": "string",
+          "nullable": true,
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "battery_id"
+      ]
+    },
+    "product_barcodes_view": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    },
+    "uihelper_shopping_list": {
+      "writable": false,
+      "fields": {},
+      "required": []
+    }
+  },
+  "operations": [
+    {
+      "name": "database_changed_time",
+      "route": "/system/db-changed-time",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "server_time",
+      "route": "/system/time",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "stock_list",
+      "route": "/stock",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "stock_entry",
+      "route": "/stock/entry/{entryId}",
+      "method": "get",
+      "properties": {
+        "entry_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "entry_id"
+      ],
+      "path_params": {
+        "entry_id": "entryId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_entry_put",
+      "route": "/stock/entry/{entryId}",
+      "method": "put",
+      "properties": {
+        "entry_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "best_before_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        },
+        "price": {
+          "type": "number"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "shopping_location_id": {
+          "type": "integer"
+        },
+        "purchased_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "entry_id",
+        "amount"
+      ],
+      "path_params": {
+        "entry_id": "entryId"
+      },
+      "body_keys": [
+        "amount",
+        "best_before_date",
+        "price",
+        "open",
+        "location_id",
+        "shopping_location_id",
+        "purchased_date"
+      ]
+    },
+    {
+      "name": "stock_volatile",
+      "route": "/stock/volatile",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "stock_product",
+      "route": "/stock/products/{productId}",
+      "method": "get",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "product_id"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_locations",
+      "route": "/stock/products/{productId}/locations",
+      "method": "get",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "product_id"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_entries",
+      "route": "/stock/products/{productId}/entries",
+      "method": "get",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "product_id"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_price_history",
+      "route": "/stock/products/{productId}/price-history",
+      "method": "get",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "product_id"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_add",
+      "route": "/stock/products/{productId}/add",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "best_before_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        },
+        "transaction_type": {
+          "type": "string",
+          "enum": [
+            "purchase",
+            "consume",
+            "inventory-correction",
+            "product-opened"
+          ],
+          "maxLength": 16384
+        },
+        "price": {
+          "type": "number"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "shopping_location_id": {
+          "type": "integer"
+        },
+        "stock_label_type": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "amount"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": [
+        "amount",
+        "best_before_date",
+        "transaction_type",
+        "price",
+        "location_id",
+        "shopping_location_id",
+        "stock_label_type",
+        "note"
+      ]
+    },
+    {
+      "name": "stock_consume",
+      "route": "/stock/products/{productId}/consume",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "transaction_type": {
+          "type": "string",
+          "enum": [
+            "purchase",
+            "consume",
+            "inventory-correction",
+            "product-opened"
+          ],
+          "maxLength": 16384
+        },
+        "spoiled": {
+          "type": "boolean"
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "recipe_id": {
+          "type": "integer"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "exact_amount": {
+          "type": "boolean"
+        },
+        "allow_subproduct_substitution": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "product_id",
+        "amount"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": [
+        "amount",
+        "transaction_type",
+        "spoiled",
+        "stock_entry_id",
+        "recipe_id",
+        "location_id",
+        "exact_amount",
+        "allow_subproduct_substitution"
+      ]
+    },
+    {
+      "name": "stock_transfer",
+      "route": "/stock/products/{productId}/transfer",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "location_id_from": {
+          "type": "integer"
+        },
+        "location_id_to": {
+          "type": "integer"
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "amount"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": [
+        "amount",
+        "location_id_from",
+        "location_id_to",
+        "stock_entry_id"
+      ]
+    },
+    {
+      "name": "stock_inventory",
+      "route": "/stock/products/{productId}/inventory",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "new_amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "best_before_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        },
+        "shopping_location_id": {
+          "type": "integer"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "price": {
+          "type": "number"
+        },
+        "stock_label_type": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "product_id",
+        "new_amount"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": [
+        "new_amount",
+        "best_before_date",
+        "shopping_location_id",
+        "location_id",
+        "price",
+        "stock_label_type",
+        "note"
+      ]
+    },
+    {
+      "name": "stock_open",
+      "route": "/stock/products/{productId}/open",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "allow_subproduct_substitution": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "product_id",
+        "amount"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": [
+        "amount",
+        "stock_entry_id",
+        "allow_subproduct_substitution"
+      ]
+    },
+    {
+      "name": "stock_copy",
+      "route": "/stock/products/{productId}/copy",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "product_id"
+      ],
+      "path_params": {
+        "product_id": "productId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_merge",
+      "route": "/stock/products/{productIdToKeep}/merge/{productIdToRemove}",
+      "method": "post",
+      "properties": {
+        "product_id_to_keep": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "product_id_to_remove": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "product_id_to_keep",
+        "product_id_to_remove"
+      ],
+      "path_params": {
+        "product_id_to_keep": "productIdToKeep",
+        "product_id_to_remove": "productIdToRemove"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_product_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}",
+      "method": "get",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "barcode"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_add_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}/add",
+      "method": "post",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "best_before_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        },
+        "transaction_type": {
+          "type": "string",
+          "enum": [
+            "purchase",
+            "consume",
+            "inventory-correction",
+            "product-opened"
+          ],
+          "maxLength": 16384
+        },
+        "price": {
+          "type": "number"
+        },
+        "location_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "barcode",
+        "amount"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": [
+        "amount",
+        "best_before_date",
+        "transaction_type",
+        "price",
+        "location_id"
+      ]
+    },
+    {
+      "name": "stock_consume_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}/consume",
+      "method": "post",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "transaction_type": {
+          "type": "string",
+          "enum": [
+            "purchase",
+            "consume",
+            "inventory-correction",
+            "product-opened"
+          ],
+          "maxLength": 16384
+        },
+        "spoiled": {
+          "type": "boolean"
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "recipe_id": {
+          "type": "integer"
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "exact_amount": {
+          "type": "boolean"
+        },
+        "allow_subproduct_substitution": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "barcode",
+        "amount"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": [
+        "amount",
+        "transaction_type",
+        "spoiled",
+        "stock_entry_id",
+        "recipe_id",
+        "location_id",
+        "exact_amount",
+        "allow_subproduct_substitution"
+      ]
+    },
+    {
+      "name": "stock_transfer_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}/transfer",
+      "method": "post",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "location_id_from": {
+          "type": "integer"
+        },
+        "location_id_to": {
+          "type": "integer"
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "barcode",
+        "amount"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": [
+        "amount",
+        "location_id_from",
+        "location_id_to",
+        "stock_entry_id"
+      ]
+    },
+    {
+      "name": "stock_inventory_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}/inventory",
+      "method": "post",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "new_amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "best_before_date": {
+          "type": "string",
+          "format": "date",
+          "maxLength": 16384
+        },
+        "location_id": {
+          "type": "integer"
+        },
+        "price": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "barcode",
+        "new_amount"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": [
+        "new_amount",
+        "best_before_date",
+        "location_id",
+        "price"
+      ]
+    },
+    {
+      "name": "stock_open_by_barcode",
+      "route": "/stock/products/by-barcode/{barcode}/open",
+      "method": "post",
+      "properties": {
+        "barcode": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
+        },
+        "stock_entry_id": {
+          "type": "string",
+          "maxLength": 16384
+        },
+        "allow_subproduct_substitution": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "barcode",
+        "amount"
+      ],
+      "path_params": {
+        "barcode": "barcode"
+      },
+      "body_keys": [
+        "amount",
+        "stock_entry_id",
+        "allow_subproduct_substitution"
+      ]
+    },
+    {
+      "name": "stock_location_entries",
+      "route": "/stock/locations/{locationId}/entries",
+      "method": "get",
+      "properties": {
+        "location_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "location_id"
+      ],
+      "path_params": {
+        "location_id": "locationId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "shopping_add_missing_products",
+      "route": "/stock/shoppinglist/add-missing-products",
+      "method": "post",
+      "properties": {
+        "list_id": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "list_id"
+      ]
+    },
+    {
+      "name": "shopping_add_overdue_products",
+      "route": "/stock/shoppinglist/add-overdue-products",
+      "method": "post",
+      "properties": {
+        "list_id": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "list_id"
+      ]
+    },
+    {
+      "name": "shopping_add_expired_products",
+      "route": "/stock/shoppinglist/add-expired-products",
+      "method": "post",
+      "properties": {
+        "list_id": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "list_id"
+      ]
+    },
+    {
+      "name": "shopping_clear",
+      "route": "/stock/shoppinglist/clear",
+      "method": "post",
+      "properties": {
+        "list_id": {
+          "type": "integer"
+        },
+        "done_only": {
+          "type": "boolean"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "list_id",
+        "done_only"
+      ]
+    },
+    {
+      "name": "shopping_add_product",
+      "route": "/stock/shoppinglist/add-product",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer"
+        },
+        "qu_id": {
+          "type": "integer"
+        },
+        "list_id": {
+          "type": "integer"
+        },
+        "product_amount": {
+          "type": "number"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 16384
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "product_id",
+        "qu_id",
+        "list_id",
+        "product_amount",
+        "note"
+      ]
+    },
+    {
+      "name": "shopping_remove_product",
+      "route": "/stock/shoppinglist/remove-product",
+      "method": "post",
+      "properties": {
+        "product_id": {
+          "type": "integer"
+        },
+        "list_id": {
+          "type": "integer"
+        },
+        "product_amount": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "product_id",
+        "list_id",
+        "product_amount"
+      ]
+    },
+    {
+      "name": "stock_booking",
+      "route": "/stock/bookings/{bookingId}",
+      "method": "get",
+      "properties": {
+        "booking_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "booking_id"
+      ],
+      "path_params": {
+        "booking_id": "bookingId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_undo_booking",
+      "route": "/stock/bookings/{bookingId}/undo",
+      "method": "post",
+      "properties": {
+        "booking_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "booking_id"
+      ],
+      "path_params": {
+        "booking_id": "bookingId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_transaction",
+      "route": "/stock/transactions/{transactionId}",
+      "method": "get",
+      "properties": {
+        "transaction_id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "transaction_id"
+      ],
+      "path_params": {
+        "transaction_id": "transactionId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "stock_undo_transaction",
+      "route": "/stock/transactions/{transactionId}/undo",
+      "method": "post",
+      "properties": {
+        "transaction_id": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "transaction_id"
+      ],
+      "path_params": {
+        "transaction_id": "transactionId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "recipe_add_not_fulfilled_products_to_shoppinglist",
+      "route": "/recipes/{recipeId}/add-not-fulfilled-products-to-shoppinglist",
+      "method": "post",
+      "properties": {
+        "recipe_id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "excludedProductIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 500
+        }
+      },
+      "required": [
+        "recipe_id"
+      ],
+      "path_params": {
+        "recipe_id": "recipeId"
+      },
+      "body_keys": [
+        "excludedProductIds"
+      ]
+    },
+    {
+      "name": "recipe_fulfillment",
+      "route": "/recipes/{recipeId}/fulfillment",
+      "method": "get",
+      "properties": {
+        "recipe_id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "recipe_id"
+      ],
+      "path_params": {
+        "recipe_id": "recipeId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "recipe_consume",
+      "route": "/recipes/{recipeId}/consume",
+      "method": "post",
+      "properties": {
+        "recipe_id": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "recipe_id"
+      ],
+      "path_params": {
+        "recipe_id": "recipeId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "recipes_fulfillment",
+      "route": "/recipes/fulfillment",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "recipe_copy",
+      "route": "/recipes/{recipeId}/copy",
+      "method": "post",
+      "properties": {
+        "recipe_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "recipe_id"
+      ],
+      "path_params": {
+        "recipe_id": "recipeId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "chores_list",
+      "route": "/chores",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "chore_details",
+      "route": "/chores/{choreId}",
+      "method": "get",
+      "properties": {
+        "chore_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "chore_id"
+      ],
+      "path_params": {
+        "chore_id": "choreId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "chore_execute",
+      "route": "/chores/{choreId}/execute",
+      "method": "post",
+      "properties": {
+        "chore_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tracked_time": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 16384
+        },
+        "done_by": {
+          "type": "integer"
+        },
+        "skipped": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "chore_id"
+      ],
+      "path_params": {
+        "chore_id": "choreId"
+      },
+      "body_keys": [
+        "tracked_time",
+        "done_by",
+        "skipped"
+      ]
+    },
+    {
+      "name": "chore_undo_execution",
+      "route": "/chores/executions/{executionId}/undo",
+      "method": "post",
+      "properties": {
+        "execution_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "execution_id"
+      ],
+      "path_params": {
+        "execution_id": "executionId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "chores_recalculate_assignments",
+      "route": "/chores/executions/calculate-next-assignments",
+      "method": "post",
+      "properties": {
+        "chore_id": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": [
+        "chore_id"
+      ]
+    },
+    {
+      "name": "chore_merge",
+      "route": "/chores/{choreIdToKeep}/merge/{choreIdToRemove}",
+      "method": "post",
+      "properties": {
+        "chore_id_to_keep": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chore_id_to_remove": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "chore_id_to_keep",
+        "chore_id_to_remove"
+      ],
+      "path_params": {
+        "chore_id_to_keep": "choreIdToKeep",
+        "chore_id_to_remove": "choreIdToRemove"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "batteries_list",
+      "route": "/batteries",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "battery_details",
+      "route": "/batteries/{batteryId}",
+      "method": "get",
+      "properties": {
+        "battery_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "battery_id"
+      ],
+      "path_params": {
+        "battery_id": "batteryId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "battery_charge",
+      "route": "/batteries/{batteryId}/charge",
+      "method": "post",
+      "properties": {
+        "battery_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tracked_time": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "battery_id"
+      ],
+      "path_params": {
+        "battery_id": "batteryId"
+      },
+      "body_keys": [
+        "tracked_time"
+      ]
+    },
+    {
+      "name": "battery_undo_charge",
+      "route": "/batteries/charge-cycles/{chargeCycleId}/undo",
+      "method": "post",
+      "properties": {
+        "charge_cycle_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "charge_cycle_id"
+      ],
+      "path_params": {
+        "charge_cycle_id": "chargeCycleId"
+      },
+      "body_keys": []
+    },
+    {
+      "name": "tasks_list",
+      "route": "/tasks",
+      "method": "get",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [],
+      "path_params": {},
+      "body_keys": []
+    },
+    {
+      "name": "task_complete",
+      "route": "/tasks/{taskId}/complete",
+      "method": "post",
+      "properties": {
+        "task_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "done_time": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 16384
+        }
+      },
+      "required": [
+        "task_id"
+      ],
+      "path_params": {
+        "task_id": "taskId"
+      },
+      "body_keys": [
+        "done_time"
+      ]
+    },
+    {
+      "name": "task_undo",
+      "route": "/tasks/{taskId}/undo",
+      "method": "post",
+      "properties": {
+        "task_id": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "task_id"
+      ],
+      "path_params": {
+        "task_id": "taskId"
+      },
+      "body_keys": []
+    }
+  ]
+}
