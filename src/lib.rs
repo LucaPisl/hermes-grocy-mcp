@@ -1,7 +1,9 @@
 pub mod catalog;
+pub mod cli;
 pub mod client;
 pub mod credentials;
 pub mod error;
 pub mod mcp;
 pub mod model;
+pub mod setup;
 pub mod tools;
