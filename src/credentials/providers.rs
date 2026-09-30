@@ -121,10 +121,21 @@ pub fn discover_providers() -> Result<Vec<ProviderCandidate>> {
                 && supports_secret_service(&bus, &owner)
                 && seen.insert(owner)
             {
-                let recommended = (desktop.contains("kde")
-                    && exe.to_string_lossy().contains("kwallet"))
-                    || (desktop.contains("gnome")
-                        && exe.to_string_lossy().contains("gnome-keyring"));
+                let executable_name = exe
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("")
+                    .to_lowercase();
+                let kde_desktop = desktop.contains("kde") || desktop.contains("lxqt");
+                let gnome_desktop = [
+                    "gnome", "cinnamon", "mate", "xfce", "lxde", "unity", "pantheon", "budgie",
+                ]
+                .iter()
+                .any(|d| desktop.contains(d));
+                let recommended = (kde_desktop
+                    && (executable_name.contains("kwallet")
+                        || executable_name.contains("ksecret")))
+                    || (gnome_desktop && executable_name.contains("gnome-keyring"));
                 output.push(ProviderCandidate {
                     label: label.to_string(),
                     identity: Some(ProviderIdentity {
