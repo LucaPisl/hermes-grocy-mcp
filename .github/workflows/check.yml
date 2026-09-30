@@ -13,10 +13,8 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    env:
-      GROCY_TEST_STATE: ${{ runner.temp }}/grocy-mcp-contract
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev libglib2.0-dev pkg-config dbus-daemon openssl
@@ -26,11 +24,11 @@ jobs:
       - run: cargo test --locked
       - run: cargo build --release --locked
       - if: github.event_name == 'workflow_dispatch' && inputs.docker_contract
-        run: python3 scripts/docker_fixture.py start --state "$GROCY_TEST_STATE"
+        run: python3 scripts/docker_fixture.py start --state "${RUNNER_TEMP}/grocy-mcp-contract"
       - if: github.event_name == 'workflow_dispatch' && inputs.docker_contract
-        run: python3 scripts/docker_fixture.py test --state "$GROCY_TEST_STATE"
+        run: python3 scripts/docker_fixture.py test --state "${RUNNER_TEMP}/grocy-mcp-contract"
       - if: always() && github.event_name == 'workflow_dispatch' && inputs.docker_contract
         run: |
-          if [ -f "$GROCY_TEST_STATE/fixture.json" ]; then
-            python3 scripts/docker_fixture.py stop --state "$GROCY_TEST_STATE"
+          if [ -f "${RUNNER_TEMP}/grocy-mcp-contract/fixture.json" ]; then
+            python3 scripts/docker_fixture.py stop --state "${RUNNER_TEMP}/grocy-mcp-contract"
           fi
