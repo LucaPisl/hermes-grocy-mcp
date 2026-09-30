@@ -1137,7 +1137,9 @@
           "maxLength": 16384
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         },
         "open": {
           "type": "boolean"
@@ -1328,7 +1330,9 @@
           "maxLength": 16384
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         },
         "location_id": {
           "type": "integer"
@@ -1442,10 +1446,12 @@
           "allow_decimal_string": true
         },
         "location_id_from": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "location_id_to": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "stock_entry_id": {
           "type": "string",
@@ -1454,7 +1460,9 @@
       },
       "required": [
         "product_id",
-        "amount"
+        "amount",
+        "location_id_from",
+        "location_id_to"
       ],
       "path_params": {
         "product_id": "productId"
@@ -1492,7 +1500,9 @@
           "type": "integer"
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         },
         "stock_label_type": {
           "type": "integer",
@@ -1656,7 +1666,9 @@
           "maxLength": 16384
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         },
         "location_id": {
           "type": "integer"
@@ -1754,10 +1766,12 @@
           "allow_decimal_string": true
         },
         "location_id_from": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "location_id_to": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "stock_entry_id": {
           "type": "string",
@@ -1766,7 +1780,9 @@
       },
       "required": [
         "barcode",
-        "amount"
+        "amount",
+        "location_id_from",
+        "location_id_to"
       ],
       "path_params": {
         "barcode": "barcode"
@@ -1801,7 +1817,9 @@
           "type": "integer"
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         }
       },
       "required": [
@@ -1886,10 +1904,13 @@
       "method": "post",
       "properties": {
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "list_id"
@@ -1901,10 +1922,13 @@
       "method": "post",
       "properties": {
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "list_id"
@@ -1916,10 +1940,13 @@
       "method": "post",
       "properties": {
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "list_id"
@@ -1931,13 +1958,16 @@
       "method": "post",
       "properties": {
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "done_only": {
           "type": "boolean"
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "list_id",
@@ -1950,23 +1980,29 @@
       "method": "post",
       "properties": {
         "product_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "qu_id": {
           "type": "integer"
         },
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "product_amount": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         },
         "note": {
           "type": "string",
           "maxLength": 16384
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "product_id",
@@ -1982,16 +2018,22 @@
       "method": "post",
       "properties": {
         "product_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "list_id": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1
         },
         "product_amount": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "allow_decimal_string": true
         }
       },
-      "required": [],
+      "required": [
+        "list_id"
+      ],
       "path_params": {},
       "body_keys": [
         "product_id",
