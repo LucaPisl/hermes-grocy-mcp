@@ -19,6 +19,9 @@ fn wallet_error() -> AppError {
 }
 pub(crate) struct WalletSession {
     pub collection: libsecret::Collection,
+    // Collections and items only hold weak references to their service. Keep it
+    // alive for the entire operation, and drop it after the collection.
+    _service: libsecret::Service,
     pub cancel: gio::Cancellable,
     done: mpsc::Sender<()>,
 }
@@ -69,6 +72,7 @@ impl WalletSession {
         }
         Ok(Self {
             collection,
+            _service: service,
             cancel,
             done,
         })
@@ -212,6 +216,15 @@ pub(crate) fn put(s: ProfileSelection, p: PrivateProfile) -> Result<()> {
         Some(&session.cancel),
     )
     .map_err(|_| wallet_error())?;
+    // Confirm persistence through a fresh encrypted session before setup can
+    // report success. A successful CreateItem alone is not sufficient.
+    let saved = load(s)?;
+    if *encode(&saved)? != *bytes {
+        return Err(AppError::new(
+            "WALLET_SAVE_UNVERIFIED",
+            "The wallet did not confirm the saved profile. Open its native manager and retry; your setup answers are kept.",
+        ));
+    }
     Ok(())
 }
 pub(crate) fn forget(s: ProfileSelection) -> Result<()> {

@@ -60,7 +60,7 @@ cargo test --locked
 cargo build --release --locked
 ```
 
-Tests additionally need `openssl`, `dbus-daemon` and Python 3. The focused suite covers destination/TLS limits, isolated wallet policy, catalog validation, MCP data, write outcomes, files and setup. The Docker contract is explicit and uses only disposable synthetic data:
+Tests additionally need `openssl`, `dbus-daemon`, `dbus-run-session`, `gnome-keyring-daemon` and Python 3. The encrypted wallet regression uses a private bus and temporary keyring; it does not access your desktop wallet. The focused suite covers destination/TLS limits, isolated wallet policy, catalog validation, MCP data, write outcomes, files and setup. The Docker contract is explicit and uses only disposable synthetic data:
 
 ```sh
 python3 scripts/docker_fixture.py start --state /tmp/grocy-mcp-contract
