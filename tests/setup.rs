@@ -14,6 +14,15 @@ fn selection() -> ProfileSelection {
 }
 #[tokio::test]
 async fn guided_setup_and_hermes_preservation() {
+    let report = hermes_grocy_mcp::setup::DoctorReport {
+        version: Some("4.7.1".into()),
+        server_time: serde_json::json!("2030-01-01"),
+        household_access: true,
+        household_defaults: serde_json::json!({"locations":[{"id":1,"name":"x".repeat(16000),"description":"unnecessary".repeat(16000)}]}),
+    };
+    let defaults = hermes_grocy_mcp::setup::private_defaults(&report);
+    assert!(!defaults.to_string().contains("unnecessary"));
+    assert!(defaults.to_string().len() < 256 * 1024);
     let block = hermes::render_config(
         std::path::Path::new("/opt/bin/hermes-grocy-mcp"),
         &selection(),

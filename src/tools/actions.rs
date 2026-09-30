@@ -52,6 +52,22 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
         {
             let read = readback("/stock/products/{productId}", "productId", id);
             let details = client.request(read).await?.json()?;
+            if call.op.name == "stock_merge" {
+                let other = super::records::get_record(
+                    client,
+                    "products",
+                    &call.args["product_id_to_remove"],
+                )
+                .await?;
+                if super::validation::record_id(&details["product"]["qu_id_stock"])?
+                    != super::validation::record_id(&other["qu_id_stock"])?
+                {
+                    return Err(AppError::new(
+                        "UNIT_CONVERSION_REQUIRED",
+                        "Products must use the same stock unit before merging. Change the removed product's unit using a valid conversion first.",
+                    ));
+                }
+            }
             if let Some(unit) = call.args.get("quantity_unit_id") {
                 apply_conversion(client, call, &details, &mut r, unit).await?;
             }
@@ -72,6 +88,34 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
                 .request(readback("/stock/entry/{entryId}", "entryId", id))
                 .await?
                 .json()?;
+            // Grocy's entry PUT replaces these values rather than merging them.
+            // Preserve omitted fields from the preflight read (no cross-client revision guarantee).
+            if call.op.name == "stock_entry_put"
+                && let RequestBody::Json(body) = &mut r.body
+            {
+                for key in [
+                    "best_before_date",
+                    "location_id",
+                    "shopping_location_id",
+                    "price",
+                    "purchased_date",
+                    "note",
+                ] {
+                    if body.get(key).is_none() {
+                        body[key] = details[key].clone();
+                    }
+                }
+                if body.get("open").is_none() {
+                    body["open"] = json!(details["open"].as_bool().unwrap_or_else(|| {
+                        details["open"].as_i64().unwrap_or_else(|| {
+                            details["open"]
+                                .as_str()
+                                .and_then(|v| v.parse().ok())
+                                .unwrap_or(0)
+                        }) != 0
+                    }));
+                }
+            }
             if let Some(unit) = call.args.get("quantity_unit_id") {
                 let details = json!({"product":super::records::get_record(client,"products",&details["product_id"]).await?});
                 apply_conversion(client, call, &details, &mut r, unit).await?;
@@ -86,6 +130,10 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
             .or_else(|| call.args.get("chore_id_to_keep"))
         {
             super::records::get_record(client, "chores", id).await?;
+            if call.op.name == "chore_merge" {
+                super::records::get_record(client, "chores", &call.args["chore_id_to_remove"])
+                    .await?;
+            }
             verify = Some(readback("/chores/{choreId}", "choreId", id));
         } else if let Some(id) = call.args.get("battery_id") {
             super::records::get_record(client, "batteries", id).await?;
@@ -139,10 +187,10 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
                 super::records::get_record(client, "locations", id).await?;
             }
         }
-        if call.op.name.starts_with("stock_add") || call.op.name.starts_with("stock_inventory") {
-            if let RequestBody::Json(body) = &mut r.body {
-                body["stock_label_type"] = json!(1);
-            }
+        if (call.op.name.starts_with("stock_add") || call.op.name.starts_with("stock_inventory"))
+            && let RequestBody::Json(body) = &mut r.body
+        {
+            body["stock_label_type"] = json!(1);
         }
     }
     if call.op.mutates && call.op.name.starts_with("shopping_") {
@@ -175,15 +223,15 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
         };
         return Ok(ToolOutput::data(data));
     }
-    if call.op.name == "stock_copy" {
-        if let Some(id) = receipt.get("created_object_id") {
-            verify = Some(readback("/stock/products/{productId}", "productId", id));
-        }
+    if call.op.name == "stock_copy"
+        && let Some(id) = receipt.get("created_object_id")
+    {
+        verify = Some(readback("/stock/products/{productId}", "productId", id));
     }
-    if call.op.name == "recipe_copy" {
-        if let Some(id) = receipt.get("created_object_id") {
-            verify = Some(readback("/recipes/{recipeId}/fulfillment", "recipeId", id));
-        }
+    if call.op.name == "recipe_copy"
+        && let Some(id) = receipt.get("created_object_id")
+    {
+        verify = Some(readback("/recipes/{recipeId}/fulfillment", "recipeId", id));
     }
     let (data, verification) = if let Some(q) = verify {
         match client.request(q).await.and_then(|r| r.json()) {

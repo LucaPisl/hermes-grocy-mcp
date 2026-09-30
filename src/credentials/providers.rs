@@ -80,6 +80,26 @@ pub(crate) fn bind_selected(identity: &ProviderIdentity) -> Result<String> {
     }
     Ok(owner)
 }
+fn supports_secret_service(bus: &gio::DBusConnection, owner: &str) -> bool {
+    bus.call_sync(
+        Some(owner),
+        "/org/freedesktop/secrets",
+        "org.freedesktop.DBus.Introspectable",
+        "Introspect",
+        None,
+        None,
+        gio::DBusCallFlags::NO_AUTO_START,
+        5000,
+        gio::Cancellable::NONE,
+    )
+    .ok()
+    .and_then(|v| v.get::<(String,)>())
+    .is_some_and(|(xml,)| {
+        xml.len() <= 65536
+            && (xml.contains("name=\"org.freedesktop.Secret.Service\"")
+                || xml.contains("name='org.freedesktop.Secret.Service'"))
+    })
+}
 pub fn discover_providers() -> Result<Vec<ProviderCandidate>> {
     let bus = bus()?;
     let names = call(&bus, "ListNames", None)?
@@ -97,21 +117,22 @@ pub fn discover_providers() -> Result<Vec<ProviderCandidate>> {
     let mut output = Vec::new();
     for (label, name) in ALIASES {
         if names.iter().any(|n| n == name) {
-            if let Ok((owner, exe)) = owner_identity(&bus, name) {
-                if seen.insert(owner) {
-                    let recommended = (desktop.contains("kde")
-                        && exe.to_string_lossy().contains("kwallet"))
-                        || (desktop.contains("gnome")
-                            && exe.to_string_lossy().contains("gnome-keyring"));
-                    output.push(ProviderCandidate {
-                        label: label.to_string(),
-                        identity: Some(ProviderIdentity {
-                            bus_name: name.to_string(),
-                            executable: exe,
-                        }),
-                        recommended,
-                    });
-                }
+            if let Ok((owner, exe)) = owner_identity(&bus, name)
+                && supports_secret_service(&bus, &owner)
+                && seen.insert(owner)
+            {
+                let recommended = (desktop.contains("kde")
+                    && exe.to_string_lossy().contains("kwallet"))
+                    || (desktop.contains("gnome")
+                        && exe.to_string_lossy().contains("gnome-keyring"));
+                output.push(ProviderCandidate {
+                    label: label.to_string(),
+                    identity: Some(ProviderIdentity {
+                        bus_name: name.to_string(),
+                        executable: exe,
+                    }),
+                    recommended,
+                });
             }
         } else if inactive.iter().any(|n| n == name) && !output.iter().any(|p| p.label == *label) {
             output.push(ProviderCandidate {

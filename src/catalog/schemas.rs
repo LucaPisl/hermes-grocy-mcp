@@ -6,10 +6,10 @@ pub fn check(value: &Value, schema: &Value) -> Result<()> {
     if value.is_null() && schema["nullable"] == true {
         return Ok(());
     }
-    if let Some(en) = schema["enum"].as_array() {
-        if !en.contains(value) {
-            return Err(AppError::input());
-        }
+    if let Some(en) = schema["enum"].as_array()
+        && !en.contains(value)
+    {
+        return Err(AppError::input());
     }
     let typ = schema["type"].as_str().unwrap_or("");
     match typ {
@@ -55,15 +55,15 @@ pub fn check(value: &Value, schema: &Value) -> Result<()> {
             if typ == "integer" && n.fract() != Decimal::ZERO {
                 return Err(AppError::input());
             }
-            if let Some(min) = schema["minimum"].as_i64() {
-                if n < Decimal::from(min) {
-                    return Err(AppError::input());
-                }
+            if let Some(min) = schema["minimum"].as_i64()
+                && n < Decimal::from(min)
+            {
+                return Err(AppError::input());
             }
-            if let Some(max) = schema["maximum"].as_i64() {
-                if n > Decimal::from(max) {
-                    return Err(AppError::input());
-                }
+            if let Some(max) = schema["maximum"].as_i64()
+                && n > Decimal::from(max)
+            {
+                return Err(AppError::input());
             }
         }
         "string" => {
@@ -77,12 +77,12 @@ pub fn check(value: &Value, schema: &Value) -> Result<()> {
                     chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
                         .map_err(|_| AppError::input())?;
                 }
-                Some("date-time") => {
+                Some("date-time")
                     if chrono::DateTime::parse_from_rfc3339(s).is_err()
-                        && chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").is_err()
-                    {
-                        return Err(AppError::input());
-                    }
+                        && chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
+                            .is_err() =>
+                {
+                    return Err(AppError::input());
                 }
                 _ => (),
             }

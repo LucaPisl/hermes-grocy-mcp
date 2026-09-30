@@ -198,12 +198,14 @@
         "start_date": {
           "type": "string",
           "nullable": true,
-          "maxLength": 16384
+          "maxLength": 16384,
+          "format": "date"
         },
         "rescheduled_date": {
           "type": "string",
           "nullable": true,
-          "maxLength": 16384
+          "maxLength": 16384,
+          "format": "date"
         },
         "rescheduled_next_execution_assigned_to_user_id": {
           "type": "integer",
@@ -548,7 +550,8 @@
         "due_date": {
           "type": "string",
           "nullable": true,
-          "maxLength": 16384
+          "maxLength": 16384,
+          "format": "date-time"
         },
         "done": {
           "type": "integer"
@@ -556,7 +559,8 @@
         "done_timestamp": {
           "type": "string",
           "nullable": true,
-          "maxLength": 16384
+          "maxLength": 16384,
+          "format": "date-time"
         },
         "category_id": {
           "type": "integer",
@@ -650,7 +654,23 @@
         },
         "type": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "enum": [
+            "checkbox",
+            "date",
+            "datetime",
+            "number-integral",
+            "number-decimal",
+            "number-currency",
+            "file",
+            "image",
+            "link",
+            "link-with-title",
+            "preset-checklist",
+            "preset-list",
+            "text-single-line",
+            "text-multi-line"
+          ]
         },
         "show_as_column_in_tables": {
           "type": "integer"
@@ -726,7 +746,8 @@
       "fields": {
         "day": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "format": "date"
         },
         "type": {
           "type": "string",
@@ -1154,6 +1175,10 @@
           "type": "string",
           "format": "date",
           "maxLength": 16384
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 16384
         }
       },
       "required": [
@@ -1170,7 +1195,8 @@
         "open",
         "location_id",
         "shopping_location_id",
-        "purchased_date"
+        "purchased_date",
+        "note"
       ]
     },
     {
@@ -2137,8 +2163,8 @@
       "method": "post",
       "properties": {
         "recipe_id": {
-          "type": "string",
-          "maxLength": 128
+          "type": "integer",
+          "minimum": 1
         },
         "excludedProductIds": {
           "type": "array",
@@ -2164,8 +2190,8 @@
       "method": "get",
       "properties": {
         "recipe_id": {
-          "type": "string",
-          "maxLength": 128
+          "type": "integer",
+          "minimum": 1
         },
         "offset": {
           "type": "integer",
@@ -2191,8 +2217,8 @@
       "method": "post",
       "properties": {
         "recipe_id": {
-          "type": "string",
-          "maxLength": 128
+          "type": "integer",
+          "minimum": 1
         }
       },
       "required": [

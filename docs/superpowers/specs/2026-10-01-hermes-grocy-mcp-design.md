@@ -1,12 +1,12 @@
 # Hermes Grocy MCP: design
 
-Date: 2026-10-01. Status: written design approved; implementation plan in preparation.
+Date: 2026-10-01. Status: approved design implemented; compatibility and limits are documented in the public guides.
 
 ## Agreed outcome
 
 Build a lightweight Rust stdio MCP for a self-hosted Grocy instance. Hermes must receive useful data and support full household reads and writes: creation, updates, deletion, and domain actions. Credentials and private connection information belong in the selected desktop wallet. Setup must work for a person without an LLM. Every MCP request to Grocy, including enrollment and diagnostics, goes through its API. Test against a disposable local Docker instance, not an existing household or the public demo. Maintain a clean AGPL-3.0-only repository using the contributor's existing public Git identity, without assistant attribution or personal artifacts.
 
-The conversational direction and this written design are approved. The implementation plan is the remaining architectural review checkpoint. No further preference questions are needed to define the first release.
+The design and implementation plan were approved. The first release follows the scope below; concrete compatibility evidence is recorded in docs/compatibility.md.
 
 ## Approach and boundaries
 

@@ -23,7 +23,7 @@ fn api_boundary() {
         "https://grocy.example/%2e/api",
         "https://grocy.example/a%2fb/api",
         "https://grocy.example/%252f/api",
-        "http://192.168.1.2/api",
+        "http://192.0.2.1/api",
         "http://localhost/api",
     ] {
         assert!(

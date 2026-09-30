@@ -45,6 +45,29 @@ fn protected_preferences() {
     std::os::unix::fs::symlink(&header, &link).unwrap();
     assert_eq!(inspect_header(&link), ProtectionEvidence::Unverified);
     assert!(prefs.load("../escape").is_err());
+    assert_eq!(
+        std::fs::metadata(&prefs.directory)
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o700
+    );
+    std::os::unix::fs::symlink(
+        prefs.directory.join("default.json"),
+        prefs.directory.join("linked.json"),
+    )
+    .unwrap();
+    assert_eq!(prefs.load("linked").unwrap_err().code, "UNSAFE_PREFERENCES");
+    std::fs::set_permissions(
+        prefs.directory.join("default.json"),
+        std::fs::Permissions::from_mode(0o644),
+    )
+    .unwrap();
+    assert_eq!(
+        prefs.load("default").unwrap_err().code,
+        "UNSAFE_PREFERENCES"
+    );
 }
 struct PlainService;
 #[zbus::interface(name = "org.freedesktop.Secret.Service")]

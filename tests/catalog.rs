@@ -34,6 +34,38 @@ fn household_catalog_and_validation() {
         )
         .is_err()
     );
+    assert!(catalog::validate("records_create",json!({"entity":"userfields","fields":{"entity":"users","name":"unsafe","caption":"Unsafe","type":"text"}}),AccessMode::Full).is_err());
+    assert!(catalog::validate("records_create",json!({"entity":"quantity_unit_conversions","fields":{"from_qu_id":1,"to_qu_id":2,"factor":-1}}),AccessMode::Full).is_err());
+    for name in [
+        "recipe_fulfillment",
+        "recipe_consume",
+        "chore_details",
+        "battery_details",
+    ] {
+        let key = if name.starts_with("recipe") {
+            "recipe_id"
+        } else if name.starts_with("chore") {
+            "chore_id"
+        } else {
+            "battery_id"
+        };
+        assert!(catalog::validate(name, json!({key:1}), AccessMode::Full).is_ok());
+    }
+    for name in ["stock_merge", "chore_merge"] {
+        let prefix = if name == "stock_merge" {
+            "product"
+        } else {
+            "chore"
+        };
+        assert!(
+            catalog::validate(
+                name,
+                json!({format!("{prefix}_id_to_keep"):1,format!("{prefix}_id_to_remove"):1}),
+                AccessMode::Full
+            )
+            .is_err()
+        );
+    }
     let rows = vec![
         json!({"id":"1","name":"Milk"}),
         json!({"id":"2","name":"Milk"}),

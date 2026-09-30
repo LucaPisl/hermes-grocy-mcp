@@ -15,6 +15,13 @@ fn raw() -> &'static Value {
 pub fn entities() -> &'static serde_json::Map<String, Value> {
     raw()["entities"].as_object().expect("entity catalog")
 }
+pub fn household_field_target(target: &str) -> bool {
+    entities().contains_key(target)
+        || (target.starts_with("userentity-")
+            && target.len() > 11
+            && !target.contains(['/', '\\', '%'])
+            && !target.chars().any(char::is_control))
+}
 #[derive(Clone)]
 pub struct OperationSpec {
     pub name: &'static str,
@@ -96,15 +103,14 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
             "userfields_update",
             HttpMethod::Put,
             "/userfields/{entity}/{id}",
-            "Update named custom-field values for a household record; discover their definitions using records_list userfields.",
+            "Update defined household custom fields. For userobjects, the custom entity is resolved automatically. For stock, id is the numeric entry row ID, and stock_transaction_id must come from the exact batch's purchase/inventory-correction/stock-edit-new receipt or history; Grocy writes batch fields via that transaction. No account fields.",
         ),
     ] {
         let writes = method.mutates();
         if writes && mode == AccessMode::ReadOnly {
             continue;
         }
-        let mut properties =
-            json!({"entity":{"type":"string","enum":if writes{&writable}else{&enum_entities}}});
+        let mut properties = json!({"entity":{"type":"string","enum":if writes && !name.starts_with("userfields_"){&writable}else{&enum_entities}}});
         let mut required = vec!["entity"];
         if route.contains("{id}") {
             properties["id"] = json!({"type":"integer","minimum":1});
@@ -117,6 +123,9 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
         if name == "records_list" {
             properties["offset"] = json!({"type":"integer","minimum":0});
             properties["limit"] = json!({"type":"integer","minimum":1,"maximum":500});
+        }
+        if name == "userfields_update" {
+            properties["stock_transaction_id"] = json!({"type":"string","maxLength":128,"description":"Required only for entity stock. Exact purchase/inventory-correction/stock-edit-new transaction ID for the selected entry's batch. Read receipts/history; the transaction must refer only to that batch."});
         }
         if writes && method != HttpMethod::Delete {
             properties["fields"] = json!({"type":"object"});
@@ -165,6 +174,17 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
             "Grocy {}. Read IDs using record tools. Quantities use the product's stock unit unless quantity_unit_id is explicitly supplied with a valid conversion. Dates: YYYY-MM-DD; timestamps: RFC3339 or server-local YYYY-MM-DD HH:MM:SS. Paging defaults to 100, maximum 500. Writes return receipts and one readback where available. UNKNOWN_WRITE_OUTCOME means inspect current state before any repeat; never replay automatically. Recipe consumption can consume only available ingredients.",
             name.replace('_', " ")
         );
+        let description = if name == "recipe_consume" {
+            format!(
+                "{description} Grocy returns no booking IDs for this action. Inspect stock_log records filtered by recipe_id and time to identify transaction IDs before requesting undo; never guess under concurrent activity."
+            )
+        } else if name == "stock_entry_put" {
+            format!(
+                "{description} Omitted entry fields are preserved using a preflight read; concurrent external edits may race this update."
+            )
+        } else {
+            description
+        };
         ops.push(OperationSpec {
             name,
             route: v["route"].as_str().unwrap(),
@@ -204,17 +224,37 @@ pub fn validate(name: &str, args: Value, mode: AccessMode) -> Result<ValidatedCa
             )
         })?;
     schemas::check(&args, &op.schema)?;
-    if let Some(amount) = args.get("amount") {
-        if amount
+    if name == "userfields_update"
+        && args["entity"] == "stock"
+        && args["stock_transaction_id"]
+            .as_str()
+            .is_none_or(|s| s.is_empty() || !s.chars().all(|c| c.is_ascii_hexdigit()))
+    {
+        return Err(AppError::new(
+            "STOCK_TRANSACTION_REQUIRED",
+            "Stock batch fields require the exact purchase, inventory-correction or entry-edit transaction ID from receipts/history.",
+        ));
+    }
+    if name == "stock_merge" || name == "chore_merge" {
+        let prefix = if name == "stock_merge" {
+            "product"
+        } else {
+            "chore"
+        };
+        if args[format!("{prefix}_id_to_keep")] == args[format!("{prefix}_id_to_remove")] {
+            return Err(AppError::input());
+        }
+    }
+    if let Some(amount) = args.get("amount")
+        && (amount
             .as_number()
             .is_some_and(|n| n.as_f64().is_some_and(|n| n <= 0.0))
             || amount.as_str().is_some_and(|n| {
                 n.parse::<rust_decimal::Decimal>()
                     .is_ok_and(|n| n <= rust_decimal::Decimal::ZERO)
-            })
-        {
-            return Err(AppError::input());
-        }
+            }))
+    {
+        return Err(AppError::input());
     }
     if name.starts_with("records_") || name.starts_with("userfields_") {
         let entity = args["entity"].as_str().ok_or_else(AppError::input)?;
@@ -238,6 +278,21 @@ pub fn validate(name: &str, args: Value, mode: AccessMode) -> Result<ValidatedCa
                     json!([])
                 };
                 schemas::check(fields, &schema(spec["fields"].clone(), required))?;
+                if entity == "userfields"
+                    && let Some(target) = fields.get("entity")
+                {
+                    let target = target.as_str().ok_or_else(AppError::input)?;
+                    if !household_field_target(target) {
+                        return Err(AppError::input());
+                    }
+                }
+                if entity == "quantity_unit_conversions"
+                    && fields
+                        .get("factor")
+                        .is_some_and(|v| v.as_f64().is_none_or(|n| n <= 0.0))
+                {
+                    return Err(AppError::input());
+                }
                 if fields.as_object().is_none_or(|f| f.is_empty()) {
                     return Err(AppError::input());
                 }
@@ -250,10 +305,10 @@ pub fn validate(name: &str, args: Value, mode: AccessMode) -> Result<ValidatedCa
         )?;
     }
     for key in op.path_params.keys() {
-        if let Some(s) = args[key].as_str() {
-            if s.contains(['/', '\\', '%']) || matches!(s, "." | "..") {
-                return Err(AppError::input());
-            }
+        if let Some(s) = args[key].as_str()
+            && (s.contains(['/', '\\', '%']) || matches!(s, "." | ".."))
+        {
+            return Err(AppError::input());
         }
     }
     let offset = args["offset"].as_u64().unwrap_or(0);
