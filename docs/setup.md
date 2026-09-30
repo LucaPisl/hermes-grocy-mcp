@@ -26,7 +26,7 @@ Setup detects active and activatable Secret Service providers. With several prov
 
 If protection cannot be confirmed, the menu offers help, acknowledgment of a password you set, cancellation, or an explicit unsafe-storage override (default off). The override may permit plaintext *wallet storage*. It **never** permits plaintext application-to-wallet communication: the encrypted Secret Service session remains mandatory. The normal path stores the entire private profile, including address, key and household metadata, in your selected wallet.
 
-Wallet/network recovery keeps answers in memory for retries. Re-running setup reuses the selected provider, saved address/key and access mode, then asks before replacing the profile. A read-only enrollment is available with `setup --read-only`. To enable writes on a previously read-only profile, forget that profile and enroll it again, or use a separate profile (`setup --profile household`).
+Setup confirms the saved profile by reading it back through a fresh encrypted wallet session before reporting success. Wallet/network recovery keeps answers in memory for retries. Re-running setup reuses the selected provider, saved address/key and access mode, then asks before replacing the profile. A read-only enrollment is available with `setup --read-only`. To enable writes on a previously read-only profile, forget that profile and enroll it again, or use a separate profile (`setup --profile household`).
 
 ## Hermes connection
 
