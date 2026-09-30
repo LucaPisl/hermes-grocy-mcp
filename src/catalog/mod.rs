@@ -179,13 +179,18 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
             body_keys,
         });
     }
+    ops.extend(crate::tools::files::operations(mode));
     ops
 }
 pub fn validate(name: &str, args: Value, mode: AccessMode) -> Result<ValidatedCall> {
     if serde_json::to_vec(&args)
         .map_err(|_| AppError::input())?
         .len()
-        > crate::client::JSON_LIMIT
+        > if name == "file_upload" {
+            12 * 1024 * 1024
+        } else {
+            crate::client::JSON_LIMIT
+        }
     {
         return Err(AppError::input());
     }
@@ -236,6 +241,18 @@ pub fn validate(name: &str, args: Value, mode: AccessMode) -> Result<ValidatedCa
                 if fields.as_object().is_none_or(|f| f.is_empty()) {
                     return Err(AppError::input());
                 }
+            }
+        }
+    }
+    if name.starts_with("file_") {
+        crate::tools::files::validate_filename(
+            args["filename"].as_str().ok_or_else(AppError::input)?,
+        )?;
+    }
+    for key in op.path_params.keys() {
+        if let Some(s) = args[key].as_str() {
+            if s.contains(['/', '\\', '%']) || matches!(s, "." | "..") {
+                return Err(AppError::input());
             }
         }
     }
