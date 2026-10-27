@@ -131,9 +131,21 @@ impl McpServer {
         context: &RequestContext<RoleServer>,
     ) -> Result<()> {
         let ids = identifiers(&call.args);
+        // Name the record from Grocy itself, so the human judges real data, not model-supplied ids.
+        let mut target = String::new();
+        if let (Some(entity), Some(id)) = (call.args["entity"].as_str(), call.args.get("id")) {
+            let client = self.client(false).await?;
+            if let Ok(row) = crate::tools::records::get_record(&client, entity, id).await
+                && let Some(label) = ["name", "description", "note"]
+                    .iter()
+                    .find_map(|k| row[*k].as_str().filter(|s| !s.is_empty()))
+            {
+                target = format!(" (\"{}\")", label.chars().take(80).collect::<String>());
+            }
+        }
         let message = format!(
-            "Allow the assistant to run {} on Grocy with {}? This cannot be undone.",
-            call.op.name, ids
+            "Allow the assistant to run {} on Grocy with {}{}? This cannot be undone.",
+            call.op.name, ids, target
         );
         match context.peer.elicit::<Confirmation>(message).await {
             Ok(Some(Confirmation { confirm: true })) => Ok(()),
