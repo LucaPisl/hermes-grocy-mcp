@@ -18,7 +18,7 @@ use std::sync::{
     Arc,
     atomic::{AtomicUsize, Ordering},
 };
-use support::{MemoryStore, selection};
+use support::{Approver, MemoryStore, selection};
 #[derive(Clone)]
 struct Proxy {
     target: String,
@@ -126,7 +126,7 @@ async fn docker_household_contract() {
     let (a, b) = tokio::io::duplex(65536);
     let serving =
         tokio::spawn(async move { server.serve(a).await.unwrap().waiting().await.unwrap() });
-    let client = ().serve(b).await.unwrap();
+    let client = Approver(true).serve(b).await.unwrap();
     assert!(client.list_all_tools().await.unwrap().len() > 50);
     macro_rules! call {
         ($name:expr,$args:expr) => {{
@@ -144,10 +144,26 @@ async fn docker_household_contract() {
                 $name,
                 result.structured_content
             );
-            let text: Value =
-                serde_json::from_str(&result.content[0].as_text().unwrap().text).unwrap();
-            assert_eq!(Some(text.clone()), result.structured_content);
-            text
+            let text = &result.content[0].as_text().unwrap().text;
+            // Large results carry a text summary; structuredContent always has the full JSON.
+            match serde_json::from_str::<Value>(text) {
+                Ok(v) => assert_eq!(Some(v), result.structured_content),
+                Err(_) => assert!(text.starts_with("Large result"), "{text}"),
+            }
+            result.structured_content.unwrap()
+        }};
+    }
+    macro_rules! refused {
+        ($name:expr,$args:expr) => {{
+            let result = client
+                .call_tool(
+                    CallToolRequestParams::new($name)
+                        .with_arguments($args.as_object().unwrap().clone()),
+                )
+                .await
+                .unwrap();
+            assert_eq!(result.is_error, Some(true), "{}", $name);
+            result.structured_content.unwrap()["error"].clone()
         }};
     }
     macro_rules! create {($entity:expr,$fields:expr)=>{id(&call!("records_create",json!({"entity":$entity,"fields":$fields})))}}
@@ -398,6 +414,119 @@ async fn docker_household_contract() {
     );
     assert_eq!(custom_fields["data"]["customnote"], "Custom value");
     call!("assignment_users", json!({}));
+    // Lite tools: names instead of IDs, against the same synthetic household.
+    let pname = name("product");
+    let found = call!("find_product", json!({"query":pname}));
+    assert_eq!(found["data"]["unique"], true, "{found}");
+    assert_eq!(numeric(&found["data"]["matches"][0]["id"]), product as f64);
+    let added = call!(
+        "add_stock",
+        json!({"product":pname.to_uppercase(),"amount":2000,"unit":name("unit"),"best_before_date":"2998-01-01"})
+    );
+    assert!(added["data"]["transaction_id"].is_string(), "{added}");
+    assert_eq!(added["data"]["unit"], name("kilounit"));
+    let before = numeric(&added["data"]["stock_amount"]);
+    let undone = call!("undo", json!({}));
+    assert_eq!(undone["write"]["status"], "completed");
+    let state = call!("find_product", json!({"query":product}));
+    assert_eq!(numeric(&state["data"]["matches"][0]["stock"]), before - 2.0);
+    // Grocy merges identical purchases; undoing one would delete the merged entry.
+    call!(
+        "add_stock",
+        json!({"product":pname,"amount":1,"best_before_date":"2998-01-01"})
+    );
+    call!(
+        "add_stock",
+        json!({"product":pname,"amount":1,"best_before_date":"2998-01-01"})
+    );
+    assert_eq!(refused!("undo", json!({}))["code"], "UNDO_UNSAFE");
+    let unknown = refused!(
+        "add_stock",
+        json!({"product":format!("zz{suffix}"),"amount":1})
+    );
+    assert_eq!(unknown["code"], "NOT_FOUND");
+    assert_eq!(unknown["recovery"]["suggestion"]["tool"], "create_product");
+    let too_much = refused!("consume_stock", json!({"product":pname,"amount":1_000_000}));
+    assert_eq!(too_much["code"], "NOT_ENOUGH_STOCK", "{too_much}");
+    call!("consume_stock", json!({"product":pname,"amount":1}));
+    call!("open_product", json!({"product":pname}));
+    let counted = call!(
+        "inventory_set",
+        json!({"product":pname,"new_amount":5,"location":name("location")})
+    );
+    assert_eq!(numeric(&counted["data"]["stock_amount"]), 5.0);
+    call!("whats_low_or_expiring", json!({"days":30}));
+    let shopping = name("shopping");
+    call!(
+        "shopping_add",
+        json!({"product":pname,"amount":2,"list":shopping})
+    );
+    let listed = call!("shopping_list", json!({"list":shopping}));
+    assert_eq!(
+        listed["data"]["items"][0]["product"],
+        pname.as_str(),
+        "{listed}"
+    );
+    let removed = call!("shopping_remove", json!({"product":pname,"list":shopping}));
+    assert_eq!(removed["data"]["now_on_list"], json!([]), "{removed}");
+    call!("recipes_suggest", json!({}));
+    let one = call!("recipes_suggest", json!({"recipe":name("recipe")}));
+    assert_eq!(
+        one["data"]["ingredients"][0]["product"],
+        pname.as_str(),
+        "{one}"
+    );
+    let todo = call!("todo_list", json!({"days":3650}));
+    assert!(
+        todo["data"]["chores"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["name"] == name("chore"))
+    );
+    call!("mark_done", json!({"chore":name("chore")}));
+    call!("undo", json!({}));
+    call!("mark_done", json!({"task":name("task")}));
+    call!("undo", json!({}));
+    let todo = call!("todo_list", json!({}));
+    assert!(
+        todo["data"]["tasks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["name"] == name("task"))
+    );
+    call!(
+        "meal_plan_add",
+        json!({"day":"2030-01-02","recipe":name("recipe"),"section":name("section"),"servings":2})
+    );
+    let plan = call!("meal_plan", json!({"from":"2030-01-01","to":"2030-01-07"}));
+    let items = plan["data"]["items"].as_array().unwrap();
+    assert!(
+        items.iter().any(|m| m["day"] == "2030-01-02"
+            && m["recipe"] == name("recipe")
+            && m["section"] == name("section")),
+        "{plan}"
+    );
+    let created = call!(
+        "create_product",
+        json!({"name":name("lite product"),"location":name("location"),"stock_unit":name("unit")})
+    );
+    assert!(created["data"]["product"]["id"].is_u64(), "{created}");
+    let again = refused!(
+        "create_product",
+        json!({"name":name("lite product").to_lowercase()})
+    );
+    assert_eq!(again["code"], "ALREADY_EXISTS");
+    let doctor = call!("doctor", json!({}));
+    assert!(
+        doctor["data"]["checks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["status"] != "fail"),
+        "{doctor}"
+    );
     use base64::{Engine, engine::general_purpose::STANDARD};
     let file = format!("manual-{suffix}.pdf");
     let bytes = b"%PDF-1.4\nSynthetic test\n%%EOF";

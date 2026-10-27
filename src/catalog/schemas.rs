@@ -18,6 +18,23 @@ fn check_at(value: &Value, schema: &Value, path: &str) -> Result<()> {
             format!("must be one of {}", options.join(", ")),
         ));
     }
+    // `"type": ["string","integer"]` (names or ids): accept the value if any listed type fits.
+    if let Some(types) = schema["type"].as_array() {
+        let fits = types.iter().any(|t| {
+            let mut single = schema.clone();
+            single["type"] = t.clone();
+            check_at(value, &single, path).is_ok()
+        });
+        let names = types.iter().filter_map(Value::as_str).collect::<Vec<_>>();
+        return if fits {
+            Ok(())
+        } else {
+            Err(AppError::field(
+                path,
+                format!("must be a {}", names.join(" or ")),
+            ))
+        };
+    }
     let typ = schema["type"].as_str().unwrap_or("");
     match typ {
         "object" => {

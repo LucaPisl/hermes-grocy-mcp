@@ -146,13 +146,17 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
                 .params
                 .insert("entity".into(), "tasks".into());
         } else if let Some(id) = call.args.get("transaction_id") {
-            client
+            let rows = client
                 .request(readback(
                     "/stock/transactions/{transactionId}",
                     "transactionId",
                     id,
                 ))
-                .await?;
+                .await?
+                .json()?;
+            if call.op.name == "stock_undo_transaction" {
+                refuse_merged_undo(client, &rows, id).await?;
+            }
             verify = Some(readback(
                 "/stock/transactions/{transactionId}",
                 "transactionId",
@@ -234,6 +238,32 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
         }),
         attachment: None,
     })
+}
+/// Grocy merges a purchase into an identical existing stock entry, and undoing that purchase
+/// deletes the whole merged entry. Refuse when the entry holds stock from other transactions.
+async fn refuse_merged_undo(client: &ApiClient, rows: &Value, tx: &Value) -> Result<()> {
+    for row in rows.as_array().into_iter().flatten() {
+        if row["transaction_type"] != "purchase" {
+            continue;
+        }
+        let mut q = ApiRequest::get("/objects/{entity}");
+        q.params.insert("entity".into(), "stock_log".into());
+        let stock_id = row["stock_id"].as_str().ok_or_else(AppError::input)?;
+        q.filters = vec![format!("stock_id={stock_id}")];
+        let log = client.request(q).await?.json()?;
+        if log.as_array().into_iter().flatten().any(|l| {
+            l["transaction_id"].as_str() != tx.as_str() && l["undone"] != 1 && l["undone"] != "1"
+        }) {
+            return Err(AppError::new(
+                "UNDO_UNSAFE",
+                format!(
+                    "Grocy merged this purchase into other stock of the product, so undoing it would also remove that stock. Nothing was changed; correct it with consume_stock (amount {}) or inventory_set instead.",
+                    row["amount"]
+                ),
+            ));
+        }
+    }
+    Ok(())
 }
 async fn apply_conversion(
     client: &ApiClient,

@@ -123,3 +123,27 @@ pub fn client(url: &str) -> hermes_grocy_mcp::client::ApiClient {
     })
     .unwrap()
 }
+/// MCP test client that supports elicitation and answers every confirmation with `self.0`.
+pub struct Approver(pub bool);
+impl rmcp::ClientHandler for Approver {
+    fn get_info(&self) -> rmcp::model::ClientInfo {
+        let mut info = rmcp::model::ClientInfo::default();
+        info.capabilities = rmcp::model::ClientCapabilities::builder()
+            .enable_elicitation()
+            .build();
+        info
+    }
+    async fn create_elicitation(
+        &self,
+        _request: rmcp::model::CreateElicitationRequestParams,
+        _context: rmcp::service::RequestContext<rmcp::RoleClient>,
+    ) -> std::result::Result<rmcp::model::CreateElicitationResult, rmcp::ErrorData> {
+        let mut result = rmcp::model::CreateElicitationResult::new(if self.0 {
+            rmcp::model::ElicitationAction::Accept
+        } else {
+            rmcp::model::ElicitationAction::Decline
+        });
+        result.content = Some(json!({"confirm":self.0}));
+        Ok(result)
+    }
+}

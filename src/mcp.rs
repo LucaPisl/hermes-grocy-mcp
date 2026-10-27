@@ -149,18 +149,15 @@ impl McpServer {
     }
     /// Resolve `undo` to the concrete Grocy undo call: an explicit transaction ID, or the
     /// most recent undoable write made through this server process.
-    fn undo_target(&self, args: &Value) -> Result<(UndoEntry, bool)> {
+    fn undo_target(&self, args: &Value) -> Result<UndoEntry> {
         if let Some(id) = args["transaction_id"].as_str() {
-            return Ok((
-                UndoEntry {
-                    tool: "stock_undo_transaction".into(),
-                    args: json!({"transaction_id":id}),
-                },
-                false,
-            ));
+            return Ok(UndoEntry {
+                tool: "stock_undo_transaction".into(),
+                args: json!({"transaction_id":id}),
+            });
         }
         let log = self.undo.lock().expect("undo log");
-        log.last().cloned().map(|e| (e, true)).ok_or_else(|| {
+        log.last().cloned().ok_or_else(|| {
             AppError::new(
                 "NOTHING_TO_UNDO",
                 "No write from this session is left to undo. Pass transaction_id from an earlier stock result.",
@@ -174,10 +171,8 @@ impl McpServer {
     ) -> Result<ToolOutput> {
         let args = Value::Object(request.arguments.unwrap_or_default());
         let mut call = catalog::validate_in(&self.tools, &request.name, args.clone())?;
-        let mut from_log = false;
         if call.op.name == "undo" {
-            let (entry, logged) = self.undo_target(&call.args)?;
-            from_log = logged;
+            let entry = self.undo_target(&call.args)?;
             call = catalog::validate(&entry.tool, entry.args, self.mode)?;
         }
         let mutates = call.op.mutates;
@@ -220,11 +215,16 @@ impl McpServer {
             }),
         }?;
         let mut log = self.undo.lock().expect("undo log");
-        if from_log {
-            log.pop();
-        }
+        // A completed undo (via `undo` or an explicit full-tier call) is no longer pending.
+        log.retain(|e| !(e.tool == name && e.args == call_args));
         if let Some(write) = &output.write
-            && let Some(undo) = crate::tools::lite::undo_for(name, &call_args, &write.receipt)
+            && let Some(undo) = match write.target["tool"].as_str() {
+                // Lite writes report the full-tier call they delegated to.
+                Some(tool) => {
+                    crate::tools::lite::undo_for(tool, &write.target["args"], &write.receipt)
+                }
+                None => crate::tools::lite::undo_for(name, &call_args, &write.receipt),
+            }
         {
             log.push(UndoEntry {
                 tool: undo["tool"].as_str().unwrap_or_default().into(),
