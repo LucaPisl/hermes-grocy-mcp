@@ -49,9 +49,32 @@ struct UndoEntry {
 #[derive(serde::Deserialize, schemars::JsonSchema)]
 struct Confirmation {
     /// Set to true to allow this permanent change.
+    // Clients such as Hermes answer a plain approval with `accept` and empty content.
+    #[serde(default = "accepted")]
     confirm: bool,
 }
+fn accepted() -> bool {
+    true
+}
 rmcp::elicit_safe!(Confirmation);
+/// The human's explicit accept allows the change; anything else (decline, cancel, timeout,
+/// `confirm: false`, malformed reply) refuses it.
+fn confirmation_outcome(
+    reply: std::result::Result<Option<Confirmation>, rmcp::service::ElicitationError>,
+) -> Result<()> {
+    use rmcp::service::ElicitationError;
+    match reply {
+        Ok(Some(Confirmation { confirm: true })) | Err(ElicitationError::NoContent) => Ok(()),
+        Err(ElicitationError::CapabilityNotSupported) => Err(AppError::new(
+            "CONFIRMATION_UNAVAILABLE",
+            "This client cannot ask the human for confirmation, so destructive tools are refused. Ask the human to do this in Grocy.",
+        )),
+        _ => Err(AppError::new(
+            "DECLINED",
+            "The human did not confirm. Nothing was changed; do not retry unless they ask.",
+        )),
+    }
+}
 pub struct McpServer {
     store: Arc<dyn CredentialStore>,
     selection: ProfileSelection,
@@ -147,17 +170,7 @@ impl McpServer {
             "Allow the assistant to run {} on Grocy with {}{}? This cannot be undone.",
             call.op.name, ids, target
         );
-        match context.peer.elicit::<Confirmation>(message).await {
-            Ok(Some(Confirmation { confirm: true })) => Ok(()),
-            Err(rmcp::service::ElicitationError::CapabilityNotSupported) => Err(AppError::new(
-                "CONFIRMATION_UNAVAILABLE",
-                "This client cannot ask the human for confirmation, so destructive tools are refused. Ask the human to do this in Grocy.",
-            )),
-            _ => Err(AppError::new(
-                "DECLINED",
-                "The human did not confirm. Nothing was changed; do not retry unless they ask.",
-            )),
-        }
+        confirmation_outcome(context.peer.elicit::<Confirmation>(message).await)
     }
     /// Resolve `undo` to the concrete Grocy undo call: an explicit transaction ID, or the
     /// most recent undoable write made through this server process.
@@ -452,4 +465,33 @@ pub async fn serve_stdio(
         .await
         .map_err(|_| AppError::new("MCP_STOPPED", "The MCP connection stopped."))?;
     Ok(())
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rmcp::service::ElicitationError;
+
+    fn reply(content: Value) -> std::result::Result<Option<Confirmation>, ElicitationError> {
+        Ok(Some(serde_json::from_value(content).unwrap()))
+    }
+
+    #[test]
+    fn a_plain_accept_confirms() {
+        // Hermes sends `accept` with `{}`; rmcp may also report no content at all.
+        assert!(confirmation_outcome(reply(json!({}))).is_ok());
+        assert!(confirmation_outcome(reply(json!({"confirm": true}))).is_ok());
+        assert!(confirmation_outcome(Err(ElicitationError::NoContent)).is_ok());
+    }
+
+    #[test]
+    fn anything_else_refuses() {
+        let code = |r| confirmation_outcome(r).unwrap_err().code;
+        assert_eq!(code(reply(json!({"confirm": false}))), "DECLINED");
+        assert_eq!(code(Err(ElicitationError::UserDeclined)), "DECLINED");
+        assert_eq!(code(Err(ElicitationError::UserCancelled)), "DECLINED");
+        assert_eq!(
+            code(Err(ElicitationError::CapabilityNotSupported)),
+            "CONFIRMATION_UNAVAILABLE"
+        );
+    }
 }
