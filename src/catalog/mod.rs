@@ -222,7 +222,7 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
 pub enum Tier {
-    /// About 15 task-shaped tools that accept names; best for small models.
+    /// 17 task-shaped tools that accept names; best for small models.
     Lite,
     /// Every reviewed Grocy tool plus the lite tools.
     Full,

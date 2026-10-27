@@ -34,7 +34,7 @@ pub struct ServeArgs {
         long,
         value_enum,
         default_value = "lite",
-        help = "lite: ~15 simple task tools; full: every Grocy tool"
+        help = "lite: 17 simple task tools that accept names; full: every Grocy tool"
     )]
     pub tools: Tier,
     #[arg(
