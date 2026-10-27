@@ -11,7 +11,7 @@ A Linux desktop stdio MCP server written in Rust. Connect Hermes to your self-ho
 | Equipment and custom data | Equipment, household custom fields/entities/objects and their values |
 | Files and dates | Known household API files, bounded binary upload/download/delete, iCalendar export |
 
-Full access includes deletion. `setup --read-only` omits mutation tools and enforces read-only access again at the HTTP boundary. Account administration, API keys, sessions, configuration secrets, external lookups, sharing and printer endpoints are excluded. See [coverage](docs/api-coverage.md) and [tested compatibility](docs/compatibility.md).
+`setup --read-only` omits mutation tools and enforces read-only access again at the HTTP boundary. Account administration, API keys, sessions, configuration secrets, external lookups, sharing and printer endpoints are excluded. See [coverage](docs/api-coverage.md) and [tested compatibility](docs/compatibility.md).
 
 ## Get started
 
@@ -40,6 +40,26 @@ Setup explains how to create a dedicated Grocy user and API key, asks for an add
 > Use grocy to list my stock. Do not change anything.
 
 Follow the [setup guide](docs/setup.md) for account permissions, 2FA, Authelia, custom certificates, retries and manual registration. Do not put your API key in environment variables, command arguments, YAML or a `.env` file. None of those credential-loading mechanisms are supported.
+
+## Tools
+
+`serve` offers one of two tiers:
+
+| Flag | Effect |
+| --- | --- |
+| `--tools lite` (default) | 17 task-shaped tools that accept names. Suited to small local models. |
+| `--tools full` | Every reviewed Grocy operation (ID-based) plus the lite tools. |
+| `--allow-destructive` | Adds deletes, merges and list clearing, plus edits to units and custom fields/entities (full tier only). Each destructive call asks the human through MCP elicitation. If the client cannot ask, the call is refused. |
+
+The lite tools are `find_product`, `whats_low_or_expiring`, `add_stock`, `consume_stock`, `open_product`, `inventory_set`, `create_product`, `shopping_list`, `shopping_add`, `shopping_remove`, `recipes_suggest`, `todo_list`, `mark_done`, `meal_plan`, `meal_plan_add`, `undo` and `doctor`. To change the tier, add the flag to the `serve` arguments of the `grocy` entry in Hermes.
+
+Products, units, locations, lists, chores, tasks, recipes and meal-plan sections can be given as an id, a product barcode, a case-insensitive exact name or a unique part of a name. Anything ambiguous or unknown is refused, with up to 8 candidates (`id`, `name`, `unit`, `stock`). Products are never created implicitly: `add_stock` with an unknown name suggests `create_product`. Amounts use the product's stock unit unless `unit` names another unit with a Grocy conversion. Stock results include the new amount, the unit name and a `transaction_id`.
+
+`undo` reverts the most recent stock, chore, task or battery write made through this server process (it keeps the last 20), or one given `transaction_id`. Grocy merges identical purchases into a single stock entry, and undoing one of them would delete the whole entry, so such undos are refused with a suggested correction.
+
+Errors name the argument at fault (for example `amount: must be greater than 0`). Grocy's own message is included, truncated to 300 characters with a hint, never with stack traces, URLs or secrets. Results above 16 KiB come with a short text summary; the complete JSON is always in `structuredContent`. Tool annotations mark read-only and destructive tools.
+
+`hermes-grocy-mcp doctor [--profile …]` (and the `doctor` tool) prints pass/warn/fail checks for the wallet, profile, TLS, API reachability, key, Grocy version, access mode and feature flags. It never prints the key or changes anything.
 
 ## Security and privacy
 
