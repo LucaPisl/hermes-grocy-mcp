@@ -121,7 +121,7 @@ fn household_catalog_and_validation() {
         )
         .is_ok()
     );
-    assert_eq!(Page::default().limit, 100);
+    assert_eq!(Page::default().limit, 25);
     assert!(Page::new(0, 501).is_err());
 }
 

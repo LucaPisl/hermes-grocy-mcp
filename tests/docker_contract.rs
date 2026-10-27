@@ -6,7 +6,12 @@ use axum::{
     http::StatusCode,
     response::Response,
 };
-use hermes_grocy_mcp::{mcp::McpServer, model::AccessMode, setup};
+use hermes_grocy_mcp::{
+    catalog::Tier,
+    mcp::{McpServer, ServeOptions},
+    model::AccessMode,
+    setup,
+};
 use rmcp::{ServiceExt, model::CallToolRequestParams};
 use serde_json::{Value, json};
 use std::sync::{
@@ -109,7 +114,15 @@ async fn docker_household_contract() {
     let report = setup::doctor(selection(), store.clone()).await.unwrap();
     assert_eq!(report.version.as_deref(), Some("4.7.1"));
     assert!(report.household_access);
-    let server = McpServer::new(store.clone(), selection(), AccessMode::Full);
+    let server = McpServer::new(
+        store.clone(),
+        selection(),
+        AccessMode::Full,
+        ServeOptions {
+            tier: Tier::Full,
+            allow_destructive: true,
+        },
+    );
     let (a, b) = tokio::io::duplex(65536);
     let serving =
         tokio::spawn(async move { server.serve(a).await.unwrap().waiting().await.unwrap() });
@@ -424,7 +437,15 @@ async fn docker_household_contract() {
         key: store.key.clone(),
     });
     setup::doctor(selection(), readonly.clone()).await.unwrap();
-    let server = McpServer::new(readonly, selection(), AccessMode::ReadOnly);
+    let server = McpServer::new(
+        readonly,
+        selection(),
+        AccessMode::ReadOnly,
+        ServeOptions {
+            tier: Tier::Full,
+            allow_destructive: true,
+        },
+    );
     let (a, b) = tokio::io::duplex(65536);
     let serving =
         tokio::spawn(async move { server.serve(a).await.unwrap().waiting().await.unwrap() });

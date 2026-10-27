@@ -1,4 +1,5 @@
 use crate::{
+    catalog::Tier,
     credentials::{
         CredentialStore, DesktopStore, preferences::PreferenceStore, protection, providers,
     },
@@ -25,6 +26,23 @@ pub struct ProfileArgs {
     #[arg(long, help = "Use only this previously selected wallet service")]
     pub provider: Option<String>,
 }
+#[derive(clap::Args)]
+pub struct ServeArgs {
+    #[command(flatten)]
+    pub profile: ProfileArgs,
+    #[arg(
+        long,
+        value_enum,
+        default_value = "lite",
+        help = "lite: ~15 simple task tools; full: every Grocy tool"
+    )]
+    pub tools: Tier,
+    #[arg(
+        long,
+        help = "Full tier only: also offer deletes, merges, list clearing and schema edits (each asks the human to confirm)"
+    )]
+    pub allow_destructive: bool,
+}
 #[derive(Subcommand)]
 pub enum Command {
     #[command(about = "Guided wallet enrollment and Hermes connection; key input is hidden")]
@@ -44,7 +62,7 @@ pub enum Command {
         allow_loopback_http: bool,
     },
     #[command(about = "Run the stdio MCP using an enrolled wallet profile")]
-    Serve(ProfileArgs),
+    Serve(ServeArgs),
     #[command(about = "Check the wallet and API without household mutations")]
     Doctor(ProfileArgs),
     #[command(about = "Discover wallet providers without reading unrelated secrets")]
@@ -153,13 +171,34 @@ pub async fn run(cli: Cli) -> Result<()> {
             )
             .await?;
         }
-        Command::Serve(a) => crate::mcp::serve_stdio(store, selection(&a, &prefs)?).await?,
+        Command::Serve(a) => {
+            crate::mcp::serve_stdio(
+                store,
+                selection(&a.profile, &prefs)?,
+                crate::mcp::ServeOptions {
+                    tier: a.tools,
+                    allow_destructive: a.allow_destructive,
+                },
+            )
+            .await?
+        }
         Command::Doctor(a) => {
-            let report = crate::setup::doctor(selection(&a, &prefs)?, store).await?;
-            println!(
-                "Wallet profile loaded with encrypted communication. API reachable; household access checked. Grocy {}. No household changes made.",
-                report.version.as_deref().unwrap_or("version unknown")
-            );
+            let checks = crate::setup::doctor_checks(selection(&a, &prefs), store).await;
+            for c in &checks {
+                println!(
+                    "{:<5} {}: {}",
+                    c["status"].as_str().unwrap_or("").to_uppercase(),
+                    c["check"].as_str().unwrap_or(""),
+                    c["detail"].as_str().unwrap_or("")
+                );
+            }
+            println!("No household changes were made.");
+            if checks.iter().any(|c| c["status"] == "fail") {
+                return Err(AppError::new(
+                    "DOCTOR_FAILED",
+                    "At least one check failed; see above.",
+                ));
+            }
         }
         Command::Wallets => {
             for p in providers::discover_providers()? {

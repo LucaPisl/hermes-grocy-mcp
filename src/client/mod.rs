@@ -14,6 +14,45 @@ use serde_json::{Value, json};
 use std::{collections::BTreeMap, time::Duration};
 pub const JSON_LIMIT: usize = 2 * 1024 * 1024;
 pub const BINARY_LIMIT: usize = 8 * 1024 * 1024;
+const ERROR_LIMIT: usize = 64 * 1024;
+/// Grocy's `{"error_message": ...}` as untrusted text: control characters removed,
+/// URLs redacted, bounded to 300 characters. Stack traces (`error_details`) are never read.
+pub fn upstream_message(body: &[u8]) -> Option<String> {
+    let value: Value = serde_json::from_slice(body).ok()?;
+    let raw = value["error_message"].as_str()?;
+    let cleaned = raw
+        .split_whitespace()
+        .map(|w| if w.contains("://") { "[url]" } else { w })
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mut text = cleaned
+        .chars()
+        .filter(|c| !c.is_control())
+        .take(300)
+        .collect::<String>();
+    if cleaned.chars().count() > 300 {
+        text.push('…');
+    }
+    (!text.is_empty()).then_some(text)
+}
+fn upstream_hint(message: &str) -> Option<&'static str> {
+    let m = message.to_ascii_lowercase();
+    Some(if m.contains("unique constraint") {
+        "A record with this value already exists. Look it up and reuse it instead of creating another."
+    } else if m.contains("no such column") {
+        "A field name is not valid for this entity. Check the fields with records_describe."
+    } else if m.contains("foreign key") {
+        "A referenced ID does not exist, or the record is still used elsewhere."
+    } else if m.contains("amount") && (m.contains("stock") || m.contains("> current")) {
+        "The amount exceeds what is in stock. Check current stock first (find_product or stock_product)."
+    } else if m.contains("does not exist") || m.contains("not found") || m.contains("inactive") {
+        "An ID or barcode does not exist. Resolve it again by name (find_product / records_lookup)."
+    } else if m.contains("invalid filename") {
+        "Use a plain file name without path separators or reserved characters."
+    } else {
+        return None;
+    })
+}
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum HttpMethod {
     Get,
@@ -50,6 +89,8 @@ pub struct ApiRequest {
     pub method: HttpMethod,
     pub params: BTreeMap<String, String>,
     pub query: BTreeMap<String, String>,
+    /// Grocy `query[]` conditions such as `name~milk`; values are query-encoded.
+    pub filters: Vec<String>,
     pub body: RequestBody,
     pub kind: ResponseKind,
 }
@@ -60,6 +101,7 @@ impl ApiRequest {
             method: HttpMethod::Get,
             params: BTreeMap::new(),
             query: BTreeMap::new(),
+            filters: Vec::new(),
             body: RequestBody::Empty,
             kind: ResponseKind::Json,
         }
@@ -151,6 +193,9 @@ impl ApiClient {
             .header("GROCY-API-KEY", key)
             .header(ACCEPT_ENCODING, "identity")
             .query(&r.query);
+        for filter in &r.filters {
+            request = request.query(&[("query[]", filter)]);
+        }
         request = match r.body {
             RequestBody::Empty => request,
             RequestBody::Json(v) => request.json(&v),
@@ -175,7 +220,8 @@ impl ApiClient {
             ));
         }
         if !status.is_success() {
-            return Err(match status.as_u16() {
+            let code = status.as_u16();
+            let mut error = match code {
                 401 | 403 => AppError::new(
                     "ACCESS_DENIED",
                     "The API rejected access. Check the dedicated user's key and household permissions.",
@@ -186,14 +232,32 @@ impl ApiClient {
                 ),
                 400 | 409 | 422 => AppError::new(
                     "API_REJECTED",
-                    "Grocy rejected the operation. Check the target, fields, units and current state.",
+                    "Grocy rejected the operation. Nothing was changed; correct the request using the upstream message and hint.",
                 ),
-                _ if write => AppError::unknown(target),
+                _ if write => return Err(AppError::unknown(target)),
                 _ => AppError::new(
                     "API_UNAVAILABLE",
                     "The API is unavailable. Check Grocy health and whether an administrator must complete its upgrade.",
                 ),
-            });
+            };
+            // Only client errors carry an actionable Grocy message; read a bounded prefix.
+            if (400..500).contains(&code) {
+                let mut bytes = Vec::new();
+                let mut stream = response.bytes_stream();
+                while let Some(Ok(chunk)) = stream.next().await {
+                    bytes.extend_from_slice(&chunk[..chunk.len().min(ERROR_LIMIT - bytes.len())]);
+                    if bytes.len() >= ERROR_LIMIT {
+                        break;
+                    }
+                }
+                if let Some(message) = upstream_message(&bytes) {
+                    if let Some(hint) = upstream_hint(&message) {
+                        error = error.with("hint", json!(hint));
+                    }
+                    error = error.with("upstream_message", json!(message));
+                }
+            }
+            return Err(error);
         }
         let outcome_error = |code, message| {
             if write {

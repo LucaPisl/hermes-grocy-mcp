@@ -89,7 +89,7 @@ async fn workflow_results_and_files() {
     let volatile = tools::execute(&client, call("stock_volatile", json!({})))
         .await
         .unwrap();
-    assert_eq!(volatile.data["due_products"]["items"][0]["id"], 7);
+    assert_eq!(volatile.data["due_products"][0]["id"], 7);
     let written = tools::execute(
         &client,
         call("stock_add", json!({"product_id":7,"amount":1})),

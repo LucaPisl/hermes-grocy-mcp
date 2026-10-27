@@ -1,6 +1,7 @@
 mod actions;
 pub mod exports;
 pub mod files;
+pub mod lite;
 pub mod records;
 pub mod validation;
 use crate::{catalog::ValidatedCall, client::ApiClient, error::Result, model::ToolOutput};

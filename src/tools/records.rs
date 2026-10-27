@@ -20,6 +20,18 @@ fn check_definition(entity: &str, row: &Value) -> Result<()> {
     }
     Ok(())
 }
+/// Keep only the requested fields (plus id); no selection keeps the whole row.
+fn project(row: &Value, fields: &Value) -> Value {
+    match (row.as_object(), fields.as_array()) {
+        (Some(obj), Some(keep)) if !keep.is_empty() => Value::Object(
+            obj.iter()
+                .filter(|(k, _)| *k == "id" || keep.iter().any(|f| f == *k))
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        ),
+        _ => row.clone(),
+    }
+}
 pub async fn get_record(client: &ApiClient, entity: &str, id: &Value) -> Result<Value> {
     let mut r = ApiRequest::get("/objects/{entity}/{id}");
     r.params = BTreeMap::from([
@@ -211,11 +223,26 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
         request
             .query
             .insert("offset".into(), call.page.offset.to_string());
-        if entities()[entity]["writable"] == true
+        if let Some(order) = call.args["order"].as_str() {
+            let (field, dir) = order.split_once(':').unwrap_or((order, "asc"));
+            request
+                .query
+                .insert("order".into(), format!("{field}:{dir}"));
+        } else if entities()[entity]["writable"] == true
             || ["stock", "stock_log", "chores_log", "battery_charge_cycles"].contains(&entity)
         {
             request.query.insert("order".into(), "id".into());
         }
+        for filter in call.args["filter"].as_array().into_iter().flatten() {
+            let (field, op, value) =
+                crate::catalog::parse_filter(entity, filter.as_str().unwrap_or(""))?;
+            request.filters.push(format!("{field}{op}{value}"));
+        }
+    }
+    if call.op.name == "records_lookup" {
+        let name = call.args["name"].as_str().ok_or_else(AppError::input)?;
+        request.filters.push(format!("name~{name}"));
+        request.query.insert("limit".into(), "50".into());
     }
     let receipt = client.request(request).await?.json()?;
     if call.op.name == "records_list" {
@@ -230,24 +257,36 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
         if entity == "userfields" {
             rows.retain(allowed_definition);
         }
+        let rows = rows
+            .iter()
+            .map(|r| project(r, &call.args["fields"]))
+            .collect::<Vec<_>>();
         return Ok(ToolOutput::data(
             json!({"items":rows,"has_more":more,"next_offset":if more{Some(call.page.offset+call.page.limit)}else{None}}),
         ));
     }
     if call.op.name == "records_lookup" {
         let name = call.args["name"].as_str().ok_or_else(AppError::input)?;
-        let rows = receipt
+        let mut rows = receipt
             .as_array()
             .ok_or_else(AppError::input)?
             .iter()
-            .filter(|r| {
-                r["name"].as_str() == Some(name)
-                    && (entity != "userfields" || allowed_definition(r))
-            })
+            .filter(|r| entity != "userfields" || allowed_definition(r))
             .cloned()
             .collect::<Vec<_>>();
+        let exact = |r: &Value| {
+            r["name"]
+                .as_str()
+                .is_some_and(|n| n.eq_ignore_ascii_case(name))
+        };
+        rows.sort_by_key(|r| !exact(r));
+        let exact_count = rows.iter().filter(|r| exact(r)).count();
+        let rows = rows
+            .iter()
+            .map(|r| project(r, &call.args["fields"]))
+            .collect::<Vec<_>>();
         return Ok(ToolOutput::data(
-            json!({"candidates":rows,"ambiguous":rows.len()>1}),
+            json!({"candidates":rows,"exact_matches":exact_count,"ambiguous":exact_count!=1 && rows.len()>1}),
         ));
     }
     if !call.op.mutates {

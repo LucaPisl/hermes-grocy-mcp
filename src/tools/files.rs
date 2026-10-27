@@ -39,38 +39,29 @@ pub fn operations(mode: AccessMode) -> Vec<OperationSpec> {
         let mut properties = json!({});
         let mut required = vec![];
         if name.starts_with("file_") {
-            properties = json!({"group":{"type":"string","enum":["equipmentmanuals","recipepictures","productpictures","userfiles"]},"filename":{"type":"string","maxLength":255}});
+            properties = json!({"group":{"type":"string","enum":["equipmentmanuals","recipepictures","productpictures","userfiles"],"description":"File group."},"filename":{"type":"string","maxLength":255,"description":"Plain file name, no path."}});
             required.extend(["group", "filename"]);
             if name == "file_upload" {
-                properties["content_base64"] = json!({"type":"string","maxLength":BINARY_LIMIT.div_ceil(3)*4,"description":"Standard base64 of actual file bytes, at most 8 MiB decoded. No local path or external URL."});
+                properties["content_base64"] = json!({"type":"string","maxLength":BINARY_LIMIT.div_ceil(3)*4,"description":"Standard base64 of the file bytes (max 8 MiB decoded)."});
                 required.push("content_base64")
             }
         }
         if name == "shopping_export" {
-            properties["list_id"] = json!({"type":"integer","minimum":1});
+            properties["list_id"] =
+                json!({"type":"integer","minimum":1,"description":"Shopping list ID."});
             required.push("list_id")
         }
         let description = match name {
-            "file_get" => {
-                "Read a known API file by group and filename. Returns real bytes as an image or embedded resource, at most 8 MiB. Does not fetch URLs or host files. Grocy has no orphan-file listing API."
-            }
-            "file_upload" => {
-                "Upload bounded base64 content as binary through the API, replacing this exact named household file. Returns a write receipt and readback verification."
-            }
-            "file_delete" => {
-                "Permanently delete the exact API file. Specify the group and filename; no host filesystem access."
-            }
+            "file_get" => "Download a stored file by group and file name (max 8 MiB).",
+            "file_upload" => "Upload (or replace) a stored file from base64 content.",
+            "file_delete" => "Permanently delete one stored file (asks the human to confirm).",
             "calendar_export" => {
-                "Export household dates as iCalendar data through the API; no public sharing link."
+                "Export household dates (chores, tasks, meal plan…) as iCalendar text."
             }
-            "shopping_export" => {
-                "Export actual shopping-list items for an explicit list ID as JSON; no printer action."
-            }
-            _ => {
-                "List assignment user IDs and display names only. No passwords, keys or account fields."
-            }
+            "shopping_export" => "All items of one shopping list as JSON.",
+            _ => "User IDs and display names for assigning chores and tasks.",
         };
-        ops.push(OperationSpec{name,route,method,schema:json!({"type":"object","properties":properties,"required":required,"additionalProperties":false}),mutates:method.mutates(),destructive:method.mutates(),description:description.into(),path_params:Default::default(),body_keys:vec![]});
+        ops.push(OperationSpec{name,route,method,schema:json!({"type":"object","properties":properties,"required":required,"additionalProperties":false}),mutates:method.mutates(),destructive:method==HttpMethod::Delete,description:description.into(),path_params:Default::default(),body_keys:vec![]});
     }
     ops
 }
@@ -87,6 +78,17 @@ fn file_request(args: &Value, method: HttpMethod) -> Result<ApiRequest> {
     r.method = method;
     r.kind = ResponseKind::Binary;
     Ok(r)
+}
+/// Grocy expects standard base64 of the name as one path segment. When the encoding
+/// contains '/', it is sent percent-encoded (%2F): Grocy accepts this, but some reverse
+/// proxies reject encoded slashes, so such failures get an explicit renaming hint.
+fn slash_hint(args: &Value, e: crate::error::AppError) -> crate::error::AppError {
+    let encoded = STANDARD.encode(args["filename"].as_str().unwrap_or(""));
+    if encoded.contains('/') && matches!(e.code, "NOT_FOUND" | "API_REJECTED") {
+        e.with("hint", json!("This file name's base64 form contains '/', which some reverse proxies reject. Retry with a plain ASCII name (letters, digits, '-', '_', '.')."))
+    } else {
+        e
+    }
 }
 pub async fn run(client: &ApiClient, call: &crate::catalog::ValidatedCall) -> Result<ToolOutput> {
     let mut r = file_request(&call.args, call.op.method)?;
@@ -106,7 +108,10 @@ pub async fn run(client: &ApiClient, call: &crate::catalog::ValidatedCall) -> Re
         expected = Some(bytes.clone());
         r.body = RequestBody::Binary(bytes);
     }
-    let response = client.request(r).await?;
+    let response = client
+        .request(r)
+        .await
+        .map_err(|e| slash_hint(&call.args, e))?;
     if call.op.method == HttpMethod::Get {
         let ResponseBody::Binary(bytes) = response.body else {
             return Err(AppError::input());

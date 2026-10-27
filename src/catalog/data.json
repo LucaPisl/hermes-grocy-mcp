@@ -1058,39 +1058,21 @@
       "name": "database_changed_time",
       "route": "/system/db-changed-time",
       "method": "get",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 500
-        }
-      },
+      "properties": {},
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "When Grocy data last changed (cheap change detection)."
     },
     {
       "name": "server_time",
       "route": "/system/time",
       "method": "get",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 500
-        }
-      },
+      "properties": {},
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "Grocy server's current time and timezone."
     },
     {
       "name": "stock_list",
@@ -1099,17 +1081,20 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "Current stock: one row per product in stock with amounts and soonest due date."
     },
     {
       "name": "stock_entry",
@@ -1118,16 +1103,8 @@
       "properties": {
         "entry_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Stock entry ID (from stock_entries)."
         }
       },
       "required": [
@@ -1136,7 +1113,8 @@
       "path_params": {
         "entry_id": "entryId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "One stock entry (batch) by entry ID."
     },
     {
       "name": "stock_entry_put",
@@ -1145,40 +1123,49 @@
       "properties": {
         "entry_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Stock entry ID (from stock_entries)."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "best_before_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Due date YYYY-MM-DD; 2999-12-31 means never."
         },
         "price": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Unit price in the stock unit."
         },
         "open": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether the entry is opened."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "shopping_location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Store (shopping location) ID."
         },
         "purchased_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Purchase date YYYY-MM-DD."
         },
         "note": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Free-text note."
         }
       },
       "required": [
@@ -1197,26 +1184,18 @@
         "shopping_location_id",
         "purchased_date",
         "note"
-      ]
+      ],
+      "description": "Edit one stock entry (batch); omitted fields are kept."
     },
     {
       "name": "stock_volatile",
       "route": "/stock/volatile",
       "method": "get",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 500
-        }
-      },
+      "properties": {},
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "Products due soon, overdue, expired and below minimum stock."
     },
     {
       "name": "stock_product",
@@ -1225,16 +1204,8 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         }
       },
       "required": [
@@ -1243,7 +1214,8 @@
       "path_params": {
         "product_id": "productId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Stock details for one product: amounts, units, locations, last price."
     },
     {
       "name": "stock_locations",
@@ -1252,16 +1224,19 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [
@@ -1270,7 +1245,8 @@
       "path_params": {
         "product_id": "productId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Where a product is stored, with amounts per location."
     },
     {
       "name": "stock_entries",
@@ -1279,16 +1255,19 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [
@@ -1297,7 +1276,8 @@
       "path_params": {
         "product_id": "productId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "All stock entries (batches) of one product."
     },
     {
       "name": "stock_price_history",
@@ -1306,16 +1286,19 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [
@@ -1324,7 +1307,8 @@
       "path_params": {
         "product_id": "productId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Purchase price history of one product."
     },
     {
       "name": "stock_add",
@@ -1333,17 +1317,20 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "best_before_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Due date YYYY-MM-DD; 2999-12-31 means never."
         },
         "transaction_type": {
           "type": "string",
@@ -1353,28 +1340,36 @@
             "inventory-correction",
             "product-opened"
           ],
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Booking type; normally omit."
         },
         "price": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Unit price in the stock unit."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "shopping_location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Store (shopping location) ID."
         },
         "stock_label_type": {
           "type": "integer",
           "enum": [
-            1
-          ]
+            0,
+            1,
+            2
+          ],
+          "description": "Label printing: 0 none (default), 1 one per product, 2 one per unit."
         },
         "note": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Free-text note."
         }
       },
       "required": [
@@ -1393,7 +1388,8 @@
         "shopping_location_id",
         "stock_label_type",
         "note"
-      ]
+      ],
+      "description": "Add (purchase) stock of a product."
     },
     {
       "name": "stock_consume",
@@ -1402,12 +1398,14 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "transaction_type": {
           "type": "string",
@@ -1417,26 +1415,33 @@
             "inventory-correction",
             "product-opened"
           ],
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Booking type; normally omit."
         },
         "spoiled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "True if the product was thrown away."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         },
         "recipe_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Recipe ID."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "exact_amount": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Grocy tare/exact-amount handling; normally omit."
         },
         "allow_subproduct_substitution": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Allow using child products when this one is not in stock."
         }
       },
       "required": [
@@ -1455,7 +1460,8 @@
         "location_id",
         "exact_amount",
         "allow_subproduct_substitution"
-      ]
+      ],
+      "description": "Consume stock of a product."
     },
     {
       "name": "stock_transfer",
@@ -1464,24 +1470,29 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "location_id_from": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Location ID to move from."
         },
         "location_id_to": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Location ID to move to."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         }
       },
       "required": [
@@ -1498,7 +1509,8 @@
         "location_id_from",
         "location_id_to",
         "stock_entry_id"
-      ]
+      ],
+      "description": "Move stock of a product between locations."
     },
     {
       "name": "stock_inventory",
@@ -1507,38 +1519,48 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "new_amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "New total amount in the product's stock unit unless quantity_unit_id is given."
         },
         "best_before_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Due date YYYY-MM-DD; 2999-12-31 means never."
         },
         "shopping_location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Store (shopping location) ID."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "price": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Unit price in the stock unit."
         },
         "stock_label_type": {
           "type": "integer",
           "enum": [
-            1
-          ]
+            0,
+            1,
+            2
+          ],
+          "description": "Label printing: 0 none (default), 1 one per product, 2 one per unit."
         },
         "note": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Free-text note."
         }
       },
       "required": [
@@ -1556,7 +1578,8 @@
         "price",
         "stock_label_type",
         "note"
-      ]
+      ],
+      "description": "Set the total stock amount of a product (inventory correction)."
     },
     {
       "name": "stock_open",
@@ -1565,19 +1588,23 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         },
         "allow_subproduct_substitution": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Allow using child products when this one is not in stock."
         }
       },
       "required": [
@@ -1591,7 +1618,8 @@
         "amount",
         "stock_entry_id",
         "allow_subproduct_substitution"
-      ]
+      ],
+      "description": "Mark stock of a product as opened."
     },
     {
       "name": "stock_copy",
@@ -1600,7 +1628,8 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         }
       },
       "required": [
@@ -1609,7 +1638,8 @@
       "path_params": {
         "product_id": "productId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Copy a product definition into a new product."
     },
     {
       "name": "stock_merge",
@@ -1618,11 +1648,13 @@
       "properties": {
         "product_id_to_keep": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID that remains."
         },
         "product_id_to_remove": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID that is merged away and deleted."
         }
       },
       "required": [
@@ -1633,7 +1665,8 @@
         "product_id_to_keep": "productIdToKeep",
         "product_id_to_remove": "productIdToRemove"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Merge one product into another and remove the second (destructive)."
     },
     {
       "name": "stock_product_by_barcode",
@@ -1642,16 +1675,8 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 500
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         }
       },
       "required": [
@@ -1660,7 +1685,8 @@
       "path_params": {
         "barcode": "barcode"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Stock details for the product with this barcode."
     },
     {
       "name": "stock_add_by_barcode",
@@ -1669,17 +1695,20 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "best_before_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Due date YYYY-MM-DD; 2999-12-31 means never."
         },
         "transaction_type": {
           "type": "string",
@@ -1689,15 +1718,18 @@
             "inventory-correction",
             "product-opened"
           ],
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Booking type; normally omit."
         },
         "price": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Unit price in the stock unit."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         }
       },
       "required": [
@@ -1713,7 +1745,8 @@
         "transaction_type",
         "price",
         "location_id"
-      ]
+      ],
+      "description": "Add (purchase) stock by barcode."
     },
     {
       "name": "stock_consume_by_barcode",
@@ -1722,12 +1755,14 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "transaction_type": {
           "type": "string",
@@ -1737,26 +1772,33 @@
             "inventory-correction",
             "product-opened"
           ],
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Booking type; normally omit."
         },
         "spoiled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "True if the product was thrown away."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         },
         "recipe_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Recipe ID."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "exact_amount": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Grocy tare/exact-amount handling; normally omit."
         },
         "allow_subproduct_substitution": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Allow using child products when this one is not in stock."
         }
       },
       "required": [
@@ -1775,7 +1817,8 @@
         "location_id",
         "exact_amount",
         "allow_subproduct_substitution"
-      ]
+      ],
+      "description": "Consume stock by barcode."
     },
     {
       "name": "stock_transfer_by_barcode",
@@ -1784,24 +1827,29 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "location_id_from": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Location ID to move from."
         },
         "location_id_to": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Location ID to move to."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         }
       },
       "required": [
@@ -1818,7 +1866,8 @@
         "location_id_from",
         "location_id_to",
         "stock_entry_id"
-      ]
+      ],
+      "description": "Move stock between locations by barcode."
     },
     {
       "name": "stock_inventory_by_barcode",
@@ -1827,25 +1876,30 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         },
         "new_amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "New total amount in the product's stock unit unless quantity_unit_id is given."
         },
         "best_before_date": {
           "type": "string",
           "format": "date",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "Due date YYYY-MM-DD; 2999-12-31 means never."
         },
         "location_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Location ID."
         },
         "price": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Unit price in the stock unit."
         }
       },
       "required": [
@@ -1860,7 +1914,8 @@
         "best_before_date",
         "location_id",
         "price"
-      ]
+      ],
+      "description": "Set the total stock amount by barcode."
     },
     {
       "name": "stock_open_by_barcode",
@@ -1869,19 +1924,23 @@
       "properties": {
         "barcode": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Product barcode exactly as stored."
         },
         "amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit unless quantity_unit_id is given."
         },
         "stock_entry_id": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Consume/open/move only this stock entry's stock_id."
         },
         "allow_subproduct_substitution": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Allow using child products when this one is not in stock."
         }
       },
       "required": [
@@ -1895,7 +1954,8 @@
         "amount",
         "stock_entry_id",
         "allow_subproduct_substitution"
-      ]
+      ],
+      "description": "Mark stock as opened by barcode."
     },
     {
       "name": "stock_location_entries",
@@ -1904,16 +1964,19 @@
       "properties": {
         "location_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Location ID."
         },
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [
@@ -1922,7 +1985,8 @@
       "path_params": {
         "location_id": "locationId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "All stock entries stored at one location."
     },
     {
       "name": "shopping_add_missing_products",
@@ -1931,7 +1995,8 @@
       "properties": {
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         }
       },
       "required": [
@@ -1940,7 +2005,8 @@
       "path_params": {},
       "body_keys": [
         "list_id"
-      ]
+      ],
+      "description": "Add all products below minimum stock to a shopping list."
     },
     {
       "name": "shopping_add_overdue_products",
@@ -1949,7 +2015,8 @@
       "properties": {
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         }
       },
       "required": [
@@ -1958,7 +2025,8 @@
       "path_params": {},
       "body_keys": [
         "list_id"
-      ]
+      ],
+      "description": "Add all overdue products to a shopping list."
     },
     {
       "name": "shopping_add_expired_products",
@@ -1967,7 +2035,8 @@
       "properties": {
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         }
       },
       "required": [
@@ -1976,7 +2045,8 @@
       "path_params": {},
       "body_keys": [
         "list_id"
-      ]
+      ],
+      "description": "Add all expired products to a shopping list."
     },
     {
       "name": "shopping_clear",
@@ -1985,10 +2055,12 @@
       "properties": {
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         },
         "done_only": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Only remove items marked done."
         }
       },
       "required": [
@@ -1998,7 +2070,8 @@
       "body_keys": [
         "list_id",
         "done_only"
-      ]
+      ],
+      "description": "Remove all (or only done) items from a shopping list (destructive)."
     },
     {
       "name": "shopping_add_product",
@@ -2007,26 +2080,32 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "qu_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Quantity unit ID for display on the list."
         },
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         },
         "product_amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit."
         },
         "note": {
           "type": "string",
-          "maxLength": 16384
+          "maxLength": 16384,
+          "description": "Free-text note."
         }
       },
       "required": [
+        "product_id",
         "list_id"
       ],
       "path_params": {},
@@ -2036,7 +2115,8 @@
         "list_id",
         "product_amount",
         "note"
-      ]
+      ],
+      "description": "Add a product to a shopping list."
     },
     {
       "name": "shopping_remove_product",
@@ -2045,19 +2125,23 @@
       "properties": {
         "product_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Product ID (find it with records_lookup entity=products or find_product)."
         },
         "list_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Shopping list ID (1 is the default list)."
         },
         "product_amount": {
           "type": "number",
           "minimum": 0,
-          "allow_decimal_string": true
+          "allow_decimal_string": true,
+          "description": "Amount in the product's stock unit."
         }
       },
       "required": [
+        "product_id",
         "list_id"
       ],
       "path_params": {},
@@ -2065,7 +2149,8 @@
         "product_id",
         "list_id",
         "product_amount"
-      ]
+      ],
+      "description": "Reduce or remove a product on a shopping list."
     },
     {
       "name": "stock_booking",
@@ -2074,16 +2159,8 @@
       "properties": {
         "booking_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Booking ID (stock_log row ID)."
         }
       },
       "required": [
@@ -2092,7 +2169,8 @@
       "path_params": {
         "booking_id": "bookingId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "One stock booking (stock_log row) by booking ID."
     },
     {
       "name": "stock_undo_booking",
@@ -2101,7 +2179,8 @@
       "properties": {
         "booking_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Booking ID (stock_log row ID)."
         }
       },
       "required": [
@@ -2110,7 +2189,8 @@
       "path_params": {
         "booking_id": "bookingId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Undo one stock booking."
     },
     {
       "name": "stock_transaction",
@@ -2119,16 +2199,19 @@
       "properties": {
         "transaction_id": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Transaction ID string returned by a stock write."
         },
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [
@@ -2137,7 +2220,8 @@
       "path_params": {
         "transaction_id": "transactionId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "All bookings of one stock transaction."
     },
     {
       "name": "stock_undo_transaction",
@@ -2146,7 +2230,8 @@
       "properties": {
         "transaction_id": {
           "type": "string",
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Transaction ID string returned by a stock write."
         }
       },
       "required": [
@@ -2155,7 +2240,8 @@
       "path_params": {
         "transaction_id": "transactionId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Undo a stock transaction (use the transaction_id from a stock write)."
     },
     {
       "name": "recipe_add_not_fulfilled_products_to_shoppinglist",
@@ -2164,14 +2250,16 @@
       "properties": {
         "recipe_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Recipe ID."
         },
         "excludedProductIds": {
           "type": "array",
           "items": {
             "type": "integer"
           },
-          "maxItems": 500
+          "maxItems": 500,
+          "description": "Product IDs to leave off the list."
         }
       },
       "required": [
@@ -2182,7 +2270,8 @@
       },
       "body_keys": [
         "excludedProductIds"
-      ]
+      ],
+      "description": "Put a recipe's missing ingredients on the shopping list."
     },
     {
       "name": "recipe_fulfillment",
@@ -2191,16 +2280,8 @@
       "properties": {
         "recipe_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Recipe ID."
         }
       },
       "required": [
@@ -2209,7 +2290,8 @@
       "path_params": {
         "recipe_id": "recipeId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Whether a recipe can be made from current stock, and what is missing."
     },
     {
       "name": "recipe_consume",
@@ -2218,7 +2300,8 @@
       "properties": {
         "recipe_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Recipe ID."
         }
       },
       "required": [
@@ -2227,7 +2310,8 @@
       "path_params": {
         "recipe_id": "recipeId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Consume a recipe's ingredients from stock."
     },
     {
       "name": "recipes_fulfillment",
@@ -2236,17 +2320,20 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "Fulfillment status for all recipes."
     },
     {
       "name": "recipe_copy",
@@ -2255,7 +2342,8 @@
       "properties": {
         "recipe_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Recipe ID."
         }
       },
       "required": [
@@ -2264,7 +2352,8 @@
       "path_params": {
         "recipe_id": "recipeId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Copy a recipe."
     },
     {
       "name": "chores_list",
@@ -2273,17 +2362,20 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "All chores with next due time and assignment."
     },
     {
       "name": "chore_details",
@@ -2292,16 +2384,8 @@
       "properties": {
         "chore_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Chore ID."
         }
       },
       "required": [
@@ -2310,7 +2394,8 @@
       "path_params": {
         "chore_id": "choreId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Details and history summary of one chore."
     },
     {
       "name": "chore_execute",
@@ -2319,18 +2404,22 @@
       "properties": {
         "chore_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Chore ID."
         },
         "tracked_time": {
           "type": "string",
           "format": "date-time",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "When it happened: YYYY-MM-DD HH:MM:SS; omit for now."
         },
         "done_by": {
-          "type": "integer"
+          "type": "integer",
+          "description": "User ID who did it (see assignment_users)."
         },
         "skipped": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Record as skipped instead of done."
         }
       },
       "required": [
@@ -2343,7 +2432,8 @@
         "tracked_time",
         "done_by",
         "skipped"
-      ]
+      ],
+      "description": "Record a chore as done (or skipped)."
     },
     {
       "name": "chore_undo_execution",
@@ -2352,7 +2442,8 @@
       "properties": {
         "execution_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Chore execution ID (from chore_execute receipt)."
         }
       },
       "required": [
@@ -2361,7 +2452,8 @@
       "path_params": {
         "execution_id": "executionId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Undo one chore execution."
     },
     {
       "name": "chores_recalculate_assignments",
@@ -2369,14 +2461,16 @@
       "method": "post",
       "properties": {
         "chore_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Chore ID."
         }
       },
       "required": [],
       "path_params": {},
       "body_keys": [
         "chore_id"
-      ]
+      ],
+      "description": "Recalculate who is assigned to the next chore executions."
     },
     {
       "name": "chore_merge",
@@ -2385,11 +2479,13 @@
       "properties": {
         "chore_id_to_keep": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Chore ID that remains."
         },
         "chore_id_to_remove": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Chore ID that is merged away and deleted."
         }
       },
       "required": [
@@ -2400,7 +2496,8 @@
         "chore_id_to_keep": "choreIdToKeep",
         "chore_id_to_remove": "choreIdToRemove"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Merge one chore into another and remove the second (destructive)."
     },
     {
       "name": "batteries_list",
@@ -2409,17 +2506,20 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "All batteries with last and next charge dates."
     },
     {
       "name": "battery_details",
@@ -2428,16 +2528,8 @@
       "properties": {
         "battery_id": {
           "type": "integer",
-          "minimum": 1
-        },
-        "offset": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "limit": {
-          "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "description": "Battery ID."
         }
       },
       "required": [
@@ -2446,7 +2538,8 @@
       "path_params": {
         "battery_id": "batteryId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Details of one battery."
     },
     {
       "name": "battery_charge",
@@ -2455,12 +2548,14 @@
       "properties": {
         "battery_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Battery ID."
         },
         "tracked_time": {
           "type": "string",
           "format": "date-time",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "When it happened: YYYY-MM-DD HH:MM:SS; omit for now."
         }
       },
       "required": [
@@ -2471,7 +2566,8 @@
       },
       "body_keys": [
         "tracked_time"
-      ]
+      ],
+      "description": "Record a battery charge."
     },
     {
       "name": "battery_undo_charge",
@@ -2480,7 +2576,8 @@
       "properties": {
         "charge_cycle_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Charge cycle ID (from battery_charge receipt)."
         }
       },
       "required": [
@@ -2489,7 +2586,8 @@
       "path_params": {
         "charge_cycle_id": "chargeCycleId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Undo one battery charge cycle."
     },
     {
       "name": "tasks_list",
@@ -2498,17 +2596,20 @@
       "properties": {
         "offset": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Skip this many items (paging)."
         },
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 500
+          "maximum": 500,
+          "description": "Maximum items to return (default 25, max 500)."
         }
       },
       "required": [],
       "path_params": {},
-      "body_keys": []
+      "body_keys": [],
+      "description": "All open tasks."
     },
     {
       "name": "task_complete",
@@ -2517,12 +2618,14 @@
       "properties": {
         "task_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Task ID."
         },
         "done_time": {
           "type": "string",
           "format": "date-time",
-          "maxLength": 16384
+          "maxLength": 32,
+          "description": "When it was done: YYYY-MM-DD HH:MM:SS; omit for now."
         }
       },
       "required": [
@@ -2533,7 +2636,8 @@
       },
       "body_keys": [
         "done_time"
-      ]
+      ],
+      "description": "Mark a task done."
     },
     {
       "name": "task_undo",
@@ -2542,7 +2646,8 @@
       "properties": {
         "task_id": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Task ID."
         }
       },
       "required": [
@@ -2551,7 +2656,8 @@
       "path_params": {
         "task_id": "taskId"
       },
-      "body_keys": []
+      "body_keys": [],
+      "description": "Mark a done task as not done."
     }
   ]
 }

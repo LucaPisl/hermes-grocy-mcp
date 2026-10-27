@@ -4,6 +4,7 @@ use crate::{
 };
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
+use std::str::FromStr;
 pub enum RecordSelector {
     Id(RecordId),
     ExactName(String),
@@ -12,6 +13,19 @@ pub struct Conversion {
     pub from: RecordId,
     pub to: RecordId,
     pub factor: Decimal,
+}
+/// Parse a Grocy/agent quantity: JSON number (including `1e-7` notation) or decimal string.
+pub fn decimal(value: &Value) -> Option<Decimal> {
+    let text = match value {
+        Value::Number(n) => n.to_string(),
+        Value::String(s) => s.trim().to_string(),
+        _ => return None,
+    };
+    Decimal::from_str(&text)
+        .or_else(|_| Decimal::from_scientific(&text))
+        .ok()
+        .or_else(|| value.as_f64().and_then(Decimal::from_f64_retain))
+        .map(|d| d.normalize())
 }
 pub fn record_id(value: &Value) -> Result<RecordId> {
     let id = value
@@ -37,13 +51,19 @@ pub fn resolve_record(rows: &[Value], selector: &RecordSelector) -> Result<Recor
             "NOT_FOUND",
             "No exact record matches. List the relevant records first.",
         )),
-        _ => Err(AppError {
-            code: "AMBIGUOUS_RECORD",
-            message: "Multiple records have this name. Choose a candidate ID explicitly.",
-            recovery: Some(
-                json!({"candidates":matches.iter().map(|r|json!({"id":r["id"],"name":r["name"]})).collect::<Vec<_>>()}),
+        _ => Err(AppError::new(
+            "AMBIGUOUS_RECORD",
+            "Multiple records have this name. Choose a candidate ID explicitly.",
+        )
+        .with(
+            "candidates",
+            json!(
+                matches
+                    .iter()
+                    .map(|r| json!({"id":r["id"],"name":r["name"]}))
+                    .collect::<Vec<_>>()
             ),
-        }),
+        )),
     }
 }
 pub fn convert_quantity(
@@ -82,12 +102,12 @@ pub async fn load_conversions(
     let mut output = Vec::new();
     for row in data.as_array().ok_or_else(AppError::input)? {
         if record_id(&row["product_id"]).is_ok_and(|id| id == product_id) {
-            let factor = row["factor"]
-                .as_str()
-                .map(str::to_owned)
-                .unwrap_or_else(|| row["factor"].to_string())
-                .parse::<Decimal>()
-                .map_err(|_| AppError::input())?;
+            let factor = decimal(&row["factor"]).ok_or_else(|| {
+                AppError::new(
+                    "INVALID_RESPONSE",
+                    "Grocy returned an unreadable unit factor.",
+                )
+            })?;
             output.push(Conversion {
                 from: record_id(&row["from_qu_id"])?,
                 to: record_id(&row["to_qu_id"])?,

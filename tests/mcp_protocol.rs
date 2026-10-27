@@ -1,5 +1,9 @@
 mod support;
-use hermes_grocy_mcp::{mcp::McpServer, model::AccessMode};
+use hermes_grocy_mcp::{
+    catalog::Tier,
+    mcp::{McpServer, ServeOptions},
+    model::AccessMode,
+};
 use rmcp::{ServiceExt, model::CallToolRequestParams};
 use serde_json::json;
 use std::sync::Arc;
@@ -16,7 +20,15 @@ async fn protocol_returns_data_and_policy() {
             access: mode,
             key: "synthetic-key".into(),
         });
-        let server = McpServer::new(store, selection(), mode);
+        let server = McpServer::new(
+            store,
+            selection(),
+            mode,
+            ServeOptions {
+                tier: Tier::Full,
+                allow_destructive: true,
+            },
+        );
         let (a, b) = tokio::io::duplex(65536);
         let serving =
             tokio::spawn(async move { server.serve(a).await.unwrap().waiting().await.unwrap() });

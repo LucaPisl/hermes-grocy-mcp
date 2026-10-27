@@ -4,7 +4,6 @@ use crate::{
     error::{AppError, Result},
     model::{ToolOutput, Verification, WriteReport, WriteStatus},
 };
-use rust_decimal::Decimal;
 use serde_json::{Value, json};
 fn build(call: &ValidatedCall) -> ApiRequest {
     let mut r = ApiRequest::get(call.op.route);
@@ -187,11 +186,6 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
                 super::records::get_record(client, "locations", id).await?;
             }
         }
-        if (call.op.name.starts_with("stock_add") || call.op.name.starts_with("stock_inventory"))
-            && let RequestBody::Json(body) = &mut r.body
-        {
-            body["stock_label_type"] = json!(1);
-        }
     }
     if call.op.mutates && call.op.name.starts_with("shopping_") {
         let mut q = ApiRequest::get("/objects/{entity}");
@@ -203,23 +197,12 @@ pub async fn run(client: &ApiClient, call: &ValidatedCall) -> Result<ToolOutput>
     }
     let receipt = client.request(r).await?.json()?;
     if !call.op.mutates {
-        let data = if let Some(arr) = receipt.as_array() {
-            call.page.slice(arr.clone())
-        } else if call.op.name == "stock_volatile" {
-            let mut grouped = serde_json::Map::new();
-            for (k, v) in receipt.as_object().ok_or_else(AppError::input)? {
-                grouped.insert(
-                    k.clone(),
-                    if let Some(a) = v.as_array() {
-                        call.page.slice(a.clone())
-                    } else {
-                        v.clone()
-                    },
-                );
+        // Only array endpoints page; objects (including stock_volatile's groups) pass through.
+        let data = match receipt.as_array() {
+            Some(arr) if call.op.schema["properties"].get("limit").is_some() => {
+                call.page.slice(arr.clone())
             }
-            Value::Object(grouped)
-        } else {
-            receipt
+            _ => receipt,
         };
         return Ok(ToolOutput::data(data));
     }
@@ -274,12 +257,8 @@ async fn apply_conversion(
         "amount"
     };
     let value = &call.args[field];
-    let amount = value
-        .as_str()
-        .map(str::to_owned)
-        .unwrap_or_else(|| value.to_string())
-        .parse::<Decimal>()
-        .map_err(|_| AppError::input())?;
+    let amount = super::validation::decimal(value)
+        .ok_or_else(|| AppError::field(field, "must be a number"))?;
     let converted = super::validation::convert_quantity(amount, from, stock, &conversions)?;
     if let RequestBody::Json(body) = &mut r.body {
         body[field] = json!(converted.to_string());
